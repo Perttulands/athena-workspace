@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openclaw.local/schemas/calibration.schema.json",
+  "title": "Calibration Record",
+  "description": "Human judgment (accept/reject) on a completed bead to teach the system taste",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "bead",
+    "decision",
+    "decided_at",
+    "run_context"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema version for future evolution"
+    },
+    "bead": {
+      "type": "string",
+      "pattern": "^bd-[a-z0-9-]+$",
+      "description": "Bead ID being judged"
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["accept", "reject"],
+      "description": "Human judgment on the bead"
+    },
+    "reason": {
+      "type": ["string", "null"],
+      "description": "Optional explanation for the decision"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when judgment was made"
+    },
+    "run_context": {
+      "type": "object",
+      "description": "Auto-populated context from run record",
+      "required": [
+        "agent",
+        "model",
+        "template_name",
+        "duration_seconds",
+        "verification_overall"
+      ],
+      "properties": {
+        "agent": {
+          "type": "string",
+          "description": "Agent type that executed the bead"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model used by the agent"
+        },
+        "template_name": {
+          "type": ["string", "null"],
+          "description": "Prompt template used"
+        },
+        "duration_seconds": {
+          "type": ["number", "null"],
+          "description": "How long the run took"
+        },
+        "verification_overall": {
+          "type": ["string", "null"],
+          "description": "Verification result (pass/fail)"
+        }
+      }
+    }
+  }
+}

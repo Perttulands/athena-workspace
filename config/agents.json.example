@@ -1,0 +1,76 @@
+{
+  "claude": {
+    "command": "claude",
+    "version_known": "2.1.41",
+    "agent_mode": {
+      "flags": ["-p", "--dangerously-skip-permissions"],
+      "model_flag": "--model",
+      "mcp_flag": "--mcp-config",
+      "stdin": "prompt piped via stdin"
+    },
+    "models": {
+      "opus": "opus",
+      "sonnet": "sonnet",
+      "haiku": "haiku"
+    },
+    "default_model": "opus",
+    "mcp_config": "{{HOME}}/mcp_agent_mail/.mcp.json",
+    "invalid_model_behavior": "fails_fast",
+    "useful_flags": {
+      "--system-prompt": "Custom system prompt",
+      "--append-system-prompt": "Append to default system prompt",
+      "--mcp-config": "Load MCP servers from JSON files",
+      "--effort": "low, medium, high",
+      "--add-dir": "Additional directories for tool access",
+      "--permission-mode": "acceptEdits, bypassPermissions, default, plan"
+    }
+  },
+  "codex": {
+    "command": "codex",
+    "subcommand": "exec",
+    "version_known": "0.99.0",
+    "exec_mode": {
+      "flags": ["exec", "--yolo"],
+      "model_flag": "-m",
+      "stdin": "reads from stdin if prompt not provided as argument, or use '-'",
+      "config_override_flag": "-c"
+    },
+    "models": {
+      "default": "gpt-5.3-codex"
+    },
+    "default_model": "gpt-5.3-codex",
+    "config_file": "~/.codex/config.toml",
+    "invalid_model_behavior": "fails_at_runtime_not_fast",
+    "useful_flags": {
+      "--skip-git-repo-check": "Allow running outside a Git repository",
+      "--ephemeral": "Don't persist session files",
+      "--json": "Print events as JSONL to stdout",
+      "-o/--output-last-message": "Write last agent message to file",
+      "--add-dir": "Additional writable directories",
+      "-c key=value": "Override config.toml values (TOML dotted paths)"
+    },
+    "reasoning_effort": {
+      "flag": "-c",
+      "syntax": "model_reasoning_effort=\"high\"",
+      "values": ["low", "medium", "high"]
+    },
+    "warnings": [
+      "We use --yolo (alias for --dangerously-bypass-approvals-and-sandbox). Never use --full-auto (sandboxed, no network).",
+      "Invalid model does NOT fail fast — starts session, loads MCP, then errors at API call"
+    ]
+  },
+  "repos": {
+    "{{HOME}}/athena-web": {
+      "test_cmd": "npm test",
+      "timeout": 120
+    },
+    "{{HOME}}/oathkeeper": {
+      "test_cmd": "go test ./...",
+      "timeout": 300
+    },
+    "{{HOME}}/truthsayer": {
+      "test_cmd": "go test ./...",
+      "timeout": 300
+    }
+  }
+}

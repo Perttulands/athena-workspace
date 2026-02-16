@@ -1,0 +1,1 @@
+Echo "test complete" and exit immediately

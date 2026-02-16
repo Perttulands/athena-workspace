@@ -1,0 +1,31 @@
+# MEMORY.md — Athena's Long-Term Memory
+
+## Core Truths
+1. Think before you tool. Not every message needs a command.
+2. The user is a person, not a ticket queue. Read the room.
+3. Investigate before concluding. One data point is not a diagnosis.
+4. Never wait synchronously. Dispatch → cron wake → process results.
+5. Structure over discipline. Encode behavior into scripts.
+6. Context is finite. Batch, delegate, go silent when waiting.
+7. Fresh agents per task. Kill when done.
+8. Write lessons to files immediately.
+9. Act on wake events — check result, message user. A wake without action is broken.
+
+## The System
+- VPS: {{HOSTNAME}} (Hetzner)
+- Services: openclaw-gateway (18500), mcp-agent-mail (8765)
+- Dispatch: dispatch.sh → tmux → watcher → wake-gateway.sh → cron wake
+- Completion signals: MCP Agent Mail (rich) + watcher (guaranteed)
+- State: state/runs/ and state/results/ (JSON)
+- Work tracking: beads (br create/close/list)
+
+## Model Selection
+- Codex (gpt-5.3-codex): default implementation via `codex exec`
+- Opus: design, architecture, judgment
+- agents.json uses aliases (`opus`, `sonnet`, `haiku`) — CLI resolves them
+
+## Active Projects
+<!-- Add your active projects here -->
+
+## Archive
+Historical lessons, completed projects, and migration details: `memory/archive.md`
