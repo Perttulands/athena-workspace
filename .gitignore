@@ -1,0 +1,70 @@
+# ── Private / personal ────────────────────────────────────────────────────────
+SOUL.md
+IDENTITY.md
+USER.md
+VISION.md
+memory/
+agents/main/sessions/
+
+# ── Runtime state (agent output, may contain secrets) ─────────────────────────
+state/runs/
+state/results/
+state/watch/
+state/truthsayer/
+state/argus/
+state/archive/
+state/calibration/
+state/plans/
+state/verifications/
+state/reviews/
+state/orchestrator-log.jsonl
+state/template-scores.json
+state/handoff-*.md
+state/security-audit-*.md
+state/agent-config-research.md
+state/project-init-design.md
+state/CLI-COMPAT.md
+state/cli-compat-report.md
+
+# ── Local tracking data ──────────────────────────────────────────────────────
+.beads/
+
+# ── Environment-specific files (use .example versions) ───────────────────────
+TOOLS.md
+config/agents.json
+MEMORY.md
+
+# ── Secrets / credentials ────────────────────────────────────────────────────
+.env
+.env.*
+*.key
+*.pem
+*.secret
+openclaw.json
+
+# ── Build artifacts / caches ─────────────────────────────────────────────────
+.venv/
+__pycache__/
+node_modules/
+.pytest_cache/
+.ruff_cache/
+package-lock.json
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+ralph-*.log
+
+# ── Trash ────────────────────────────────────────────────────────────────────
+.trash/
+.trash-*
+
+# ── Temp/progress files from ralph ───────────────────────────────────────────
+progress_*.txt
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+bad.go
+test-custom-template.sh
+inbox/done/
+inbox/failed/
+inbox/processing/
+inbox/incoming/

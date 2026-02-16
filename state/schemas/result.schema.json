@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bead",
+    "agent",
+    "status",
+    "reason",
+    "started_at",
+    "finished_at",
+    "duration_seconds",
+    "attempt",
+    "max_retries",
+    "will_retry",
+    "exit_code",
+    "session_name"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "bead": { "type": "string", "minLength": 1 },
+    "agent": { "type": "string", "enum": ["claude", "codex"] },
+    "status": { "type": "string", "enum": ["running", "done", "failed", "timeout"] },
+    "reason": { "type": "string", "minLength": 1 },
+    "started_at": { "type": "string", "minLength": 1 },
+    "finished_at": { "type": ["string", "null"] },
+    "duration_seconds": { "type": ["integer", "null"], "minimum": 0 },
+    "attempt": { "type": "integer", "minimum": 1 },
+    "max_retries": { "type": "integer", "minimum": 1 },
+    "will_retry": { "type": "boolean" },
+    "exit_code": { "type": ["integer", "null"] },
+    "session_name": { "type": "string", "minLength": 1 },
+    "output_summary": { "type": ["string", "null"] },
+    "verification": {
+      "type": ["object", "null"],
+      "properties": {
+        "lint": { "type": "string", "enum": ["pass", "fail", "skipped"] },
+        "tests": { "type": "string", "enum": ["pass", "fail", "skipped"] },
+        "ubs": { "type": "string", "enum": ["clean", "issues", "skipped"] },
+        "lint_details": { "type": ["array", "null"] },
+        "overall": { "type": "string", "enum": ["pass", "fail"] }
+      }
+    }
+  }
+}

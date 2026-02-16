@@ -1,0 +1,55 @@
+# TOOLS.md — Local Setup
+
+## Server
+
+- Host: {{HOSTNAME}}
+- User: {{USERNAME}}
+- Tailscale IP: {{TAILSCALE_IP}}
+
+## Services (systemd)
+
+| Service | Port |
+|---------|------|
+| openclaw-gateway | 18500 |
+| mcp-agent-mail | 8765 |
+| athena-web | 9000 |
+
+## CLI Tools
+
+| Tool | Purpose |
+|------|---------|
+| bd | Beads — work tracking |
+| bv | Beads TUI viewer |
+| codex | Codex CLI (gpt-5.3-codex) — default agent for implementation |
+| claude | Claude Code CLI (opus default) — design, architecture, judgment |
+| gh | GitHub CLI ({{GITHUB_USER}}) |
+| cass | Agent session search |
+| ntm | Named tmux manager |
+| ubs | Bug scanner |
+| rtk | Token reduction proxy (60-90% savings, auto-active via hook) |
+| dcg | Destructive command guard |
+| tailscale | VPN mesh |
+
+## Agent Dispatch
+
+- Socket: /tmp/openclaw-coding-agents.sock
+- Sessions named: agent-<bead-id>
+- Config: config/agents.json (models, flags, commands)
+- Claude runs in agentic mode (not print mode) with MCP Agent Mail
+
+## MCP Agent Mail
+
+- Endpoint: http://127.0.0.1:8765/api/
+- Auth: Bearer token in {{HOME}}/mcp_agent_mail/.env
+
+## Key Paths
+
+- Workspace: ~/.openclaw/workspace/
+- Scripts: ~/.openclaw/workspace/scripts/
+- Templates: ~/.openclaw/workspace/templates/
+- State: ~/.openclaw/workspace/state/
+- Run records: ~/.openclaw/workspace/state/runs/
+- Results: ~/.openclaw/workspace/state/results/
+- OpenClaw config: ~/.openclaw/openclaw.json
+- Agent mail: ~/mcp_agent_mail/
+- Argus: ~/argus/
