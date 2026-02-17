@@ -11,7 +11,7 @@ DETAILS="${3:-}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Create a bead tagged as a problem
-BEAD_OUTPUT=$(br create --title "[$SOURCE] $TITLE" --priority 1 2>&1 | head -1)
+BEAD_OUTPUT=$(bd create --title "[$SOURCE] $TITLE" --priority 1 2>&1 | head -1)
 BEAD_ID=$(echo "$BEAD_OUTPUT" | grep -oP 'bd-\w+' || echo "unknown")
 
 # Log to problem registry

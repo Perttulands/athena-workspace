@@ -76,26 +76,26 @@ Minor issues found: $MINOR_ISSUES
 
 Full audit: state/doc-audits/$AUDIT_ID.json"
 
-        # Create bead using br CLI
-        if command -v br &>/dev/null; then
-            BEAD_ID=$(br create \
+        # Create bead using bd CLI
+        if command -v bd &>/dev/null; then
+            BEAD_ID=$(bd create \
                 --title "Documentation quality remediation" \
                 --description "$BEAD_DESC" \
                 --priority P2 \
-                --tags doc-quality,automated \
-                --format json | jq -r '.id')
+                --labels doc-quality,automated \
+                --json | jq -r '.id')
 
             log "Created bead: $BEAD_ID"
             log_memory "Doc-gardener: Created remediation bead $BEAD_ID"
 
             # Attach audit file to bead
-            if ! br attach "$BEAD_ID" "$WORKSPACE_DIR/state/doc-audits/$AUDIT_ID.json"; then
+            if ! bd update "$BEAD_ID" --notes "Audit file: $WORKSPACE_DIR/state/doc-audits/$AUDIT_ID.json"; then
                 log "WARNING: failed to attach audit file to bead $BEAD_ID"
                 log_memory "Doc-gardener: Could not attach audit file to bead $BEAD_ID"
             fi
         else
-            log "WARNING: br command not found, cannot create bead"
-            log_memory "Doc-gardener: Cannot create bead (br not found)"
+            log "WARNING: bd command not found, cannot create bead"
+            log_memory "Doc-gardener: Cannot create bead (bd not found)"
         fi
     fi
 else

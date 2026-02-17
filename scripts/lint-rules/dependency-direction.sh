@@ -12,7 +12,7 @@ if [[ ! "$FILE" =~ \.(sh|js)$ ]]; then
 fi
 
 # Define layer boundaries (from SWARM-IMPLEMENTATION.md)
-# Layer 0: tools (br, tmux, etc) - no workspace imports
+# Layer 0: tools (bd, tmux, etc) - no workspace imports
 # Layer 1: scripts/ - can use tools, not templates or state analysis
 # Layer 2: state/ - can be read by any layer, written only by scripts
 # Layer 3: templates/ - can reference docs, not scripts

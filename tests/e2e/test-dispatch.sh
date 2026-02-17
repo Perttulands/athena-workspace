@@ -62,7 +62,7 @@ cleanup() {
     fi
 
     if [[ -n "$BEAD_ID" && "$BEAD_CLOSED" -eq 0 ]]; then
-        if ! br close "$BEAD_ID" --reason "e2e dispatch cleanup" >/dev/null 2>&1; then
+        if ! bd close "$BEAD_ID" --reason "e2e dispatch cleanup" >/dev/null 2>&1; then
             echo "WARN: failed to close bead $BEAD_ID during cleanup" >&2
         fi
     fi
@@ -119,7 +119,7 @@ if [[ "$AGENT_TYPE" != "codex" && "$AGENT_TYPE" != "claude" ]]; then
     finish
 fi
 
-for cmd in br jq tmux "$AGENT_TYPE"; do
+for cmd in bd jq tmux "$AGENT_TYPE"; do
     if command -v "$cmd" >/dev/null 2>&1; then
         :
     else
@@ -137,7 +137,7 @@ if [[ $FAILED -gt 0 ]]; then
 fi
 
 create_err_file="$(mktemp)"
-if create_json="$(br create --title "e2e-dispatch-$(date +%s)" --priority 1 --ephemeral --json 2>"$create_err_file")"; then
+if create_json="$(bd create --title "e2e-dispatch-$(date +%s)" --priority 1 --ephemeral --json 2>"$create_err_file")"; then
     :
 else
     create_json=""
@@ -148,13 +148,13 @@ else
     BEAD_ID=""
 fi
 if [[ -s "$create_err_file" ]]; then
-    echo "WARN: br create stderr: $(cat "$create_err_file")" >&2
+    echo "WARN: bd create stderr: $(cat "$create_err_file")" >&2
 fi
 rm -f "$create_err_file"
 if [[ -n "$BEAD_ID" ]]; then
-    pass "Created test bead with br: $BEAD_ID"
+    pass "Created test bead with bd: $BEAD_ID"
 else
-    fail "Failed to create test bead with br"
+    fail "Failed to create test bead with bd"
     finish
 fi
 
@@ -214,7 +214,7 @@ else
     fail "Expected output not found in $TEST_OUTPUT_FILE"
 fi
 
-if br close "$BEAD_ID" --reason "e2e dispatch test complete" >/dev/null 2>&1; then
+if bd close "$BEAD_ID" --reason "e2e dispatch test complete" >/dev/null 2>&1; then
     BEAD_CLOSED=1
     pass "Closed test bead"
 else

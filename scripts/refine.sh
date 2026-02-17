@@ -35,7 +35,7 @@ close_bead() {
     local bead_id="$1"
     local reason="$2"
     if [[ -n "$bead_id" ]]; then
-        if ! br close "$bead_id" --reason "$reason" >/dev/null 2>&1; then
+        if ! bd close "$bead_id" --reason "$reason" >/dev/null 2>&1; then
             echo "Warning: failed to close bead $bead_id ($reason)" >&2
         fi
     fi
@@ -82,7 +82,7 @@ launch_bead_close_watcher() {
         if [[ -z "$status" ]]; then
             reason="refinement watcher timeout"
         fi
-        if ! br close "$bead_id" --reason "$reason" >/dev/null 2>&1; then
+        if ! bd close "$bead_id" --reason "$reason" >/dev/null 2>&1; then
             echo "Warning: watcher failed to close bead $bead_id ($reason)" >&2
         fi
     ) >/dev/null 2>&1 &
@@ -181,7 +181,7 @@ REPO_PATH="$(cd "$REPO_INPUT" && pwd)"
 
 require_cmd git
 require_cmd jq
-require_cmd br
+require_cmd bd
 
 REPO_NAME="$(basename "$REPO_PATH")"
 BEAD_TITLE="Refinement pass for $REPO_NAME"
@@ -286,7 +286,7 @@ if [[ "$DRY_RUN" == "true" ]]; then
     exit 0
 fi
 
-if ! create_json="$(br create --title "$BEAD_TITLE" --priority 1 --json)"; then
+if ! create_json="$(bd create --title "$BEAD_TITLE" --priority 1 --json)"; then
     die "failed to create bead for refinement pass"
 fi
 if ! BEAD_ID="$(printf '%s' "$create_json" | jq -r '.id // empty')"; then

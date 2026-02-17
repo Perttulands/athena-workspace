@@ -74,7 +74,7 @@ After running `setup.sh`:
 2. Edit `MEMORY.md` to add your active projects
 3. Configure `~/.openclaw/openclaw.json` for the gateway
 4. Set up API keys in your environment
-5. Install auxiliary tools: beads (`br`), truthsayer, argus
+5. Install auxiliary tools: beads (`bd`), truthsayer, argus
 
 ## License
 

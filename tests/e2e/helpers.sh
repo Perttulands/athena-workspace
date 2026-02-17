@@ -114,5 +114,5 @@ cleanup_test_bead() {
           "$workspace/state/results/$bead_id.json" \
           "$workspace/state/results/${bead_id}-verify.json" \
           "$workspace/state/watch/$bead_id".*
-    br delete "$bead_id" --force 2>/dev/null || true
+    bd delete "$bead_id" --force 2>/dev/null || true
 }

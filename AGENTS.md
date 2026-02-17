@@ -11,13 +11,13 @@
 ## Swarm Quick Reference
 
 ```bash
-br create --title "task" --priority 1                              # Create bead
+bd create --title "task" --priority 1                              # Create bead
 ./scripts/dispatch.sh <bead> <repo> codex "prompt"                 # Dispatch (codex)
 ./scripts/dispatch.sh <bead> <repo> claude:opus "prompt"           # Dispatch (opus)
 ./scripts/dispatch.sh <bead> <repo> claude:haiku "prompt" --branch feat-x  # Shared branch
 ./scripts/verify.sh <repo> [bead]                                  # Quality gate
 ./scripts/centurion.sh merge <branch> <repo>                       # Test-gated merge
-br close <bead>                                                    # Close
+bd close <bead>                                                    # Close
 ```
 
 ## Rules

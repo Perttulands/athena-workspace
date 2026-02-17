@@ -34,7 +34,7 @@ check_tool() {
     fi
 
     case "$tool" in
-        br) cmd=(br --version) ;;
+        bd) cmd=(bd --version) ;;
         codex) cmd=(codex --version) ;;
         claude) cmd=(claude --version) ;;
         gh) cmd=(gh --version) ;;
@@ -66,7 +66,7 @@ finish() {
 
 echo "== Tool Availability E2E =="
 
-TOOLS=(br codex claude gh cass ntm ubs dcg rtk tailscale)
+TOOLS=(bd codex claude gh cass ntm ubs dcg rtk tailscale)
 for tool in "${TOOLS[@]}"; do
     check_tool "$tool"
 done

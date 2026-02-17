@@ -51,7 +51,7 @@ Add to agent completion workflow:
 ```bash
 if ./scripts/review-agent.sh "$BEAD_ID"; then
     echo "Review passed"
-    br update "$BEAD_ID" --status done
+    bd update "$BEAD_ID" --status done
 else
     echo "Review failed - see state/reviews/$BEAD_ID.json"
 fi

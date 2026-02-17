@@ -152,7 +152,7 @@ cleanup_stale_agents() {
 get_pending_beads() {
     # Source work from three places (priority order):
     # 1. Plan files in state/plans/ (pre-decomposed tasks with dispatch metadata)
-    # 2. Open beads from br CLI (todo status, sorted by priority)
+    # 2. Open beads from bd CLI (todo status, sorted by priority)
     # 3. Falls back to empty if neither source has work
 
     local pending="[]"
@@ -180,18 +180,18 @@ get_pending_beads() {
         fi
     fi
 
-    # Fall back to br CLI for open beads
-    if command -v br &>/dev/null; then
+    # Fall back to bd CLI for open beads
+    if command -v bd &>/dev/null; then
         local br_output
-        if ! br_output="$(br list --json)"; then
-            echo "Warning: br list --json failed; using empty bead list" >&2
+        if ! br_output="$(bd list --json)"; then
+            echo "Warning: bd list --json failed; using empty bead list" >&2
             br_output="[]"
         fi
 
         if [[ -n "$br_output" && "$br_output" != "[]" ]]; then
             # Filter to todo/active beads sorted by priority
             if ! pending="$(echo "$br_output" | jq '[.[] | select(.status == "todo" or .status == "open")] | sort_by(.priority)')"; then
-                echo "Warning: br list output was invalid JSON; using empty pending list" >&2
+                echo "Warning: bd list output was invalid JSON; using empty pending list" >&2
                 pending="[]"
             fi
             echo "$pending"

@@ -13,7 +13,7 @@ TMUX_SOCKET="/tmp/openclaw-e2e-test.sock"
 
 cleanup() {
     [[ -n "$BEAD_ID" ]] && {
-        if ! br delete "$BEAD_ID" --force >/dev/null 2>&1; then
+        if ! bd delete "$BEAD_ID" --force >/dev/null 2>&1; then
             echo "WARN: cleanup failed to delete bead $BEAD_ID" >&2
         fi
         rm -f "$WORKSPACE/state/runs/$BEAD_ID.json" \
@@ -41,7 +41,7 @@ echo "# test" > README.md
 git add . && git commit -q -m "init"
 
 # Create bead
-BEAD_ID="$(br q "e2e-dispatch-test-$(date +%s)")"
+BEAD_ID="$(bd q "e2e-dispatch-test-$(date +%s)")"
 assert_not_empty "$BEAD_ID" "bead created"
 
 # Dispatch with isolated tmux socket and short timeout

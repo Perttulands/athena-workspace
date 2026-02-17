@@ -27,7 +27,7 @@ for cmd in git jq rg tmux; do
 done
 
 # Optional but recommended
-for cmd in go node claude codex br gh; do
+for cmd in go node claude codex bd gh; do
     if command -v "$cmd" &>/dev/null; then
         ok "$cmd found"
     else
@@ -168,7 +168,7 @@ echo "Still needs manual setup:"
 echo "  - ~/.openclaw/openclaw.json  (OpenClaw gateway config)"
 echo "  - API keys (ANTHROPIC_API_KEY, OPENAI_API_KEY in env)"
 echo "  - MCP Agent Mail (~/mcp_agent_mail/)"
-echo "  - Beads CLI (br) — install from source"
+echo "  - Beads CLI (bd) — install from source"
 echo "  - Truthsayer — install from source"
 echo "  - Argus — install from source"
 echo "  - systemd services (openclaw-gateway, mcp-agent-mail)"

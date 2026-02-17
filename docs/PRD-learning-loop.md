@@ -416,7 +416,7 @@ next 10 feature dispatches will alternate."
 | `prompt-optimizer` skill | `refine-prompts.sh` wraps and extends it. `analyze-patterns.sh` reused for pattern detection. |
 | `verify.sh` | No changes. Already produces the verification JSON consumed by feedback-collector. |
 | `truthsayer` | Truthsayer findings already recorded in run records. Feedback-collector extracts them. |
-| `br` (beads) | No changes. Bead IDs remain the primary key. |
+| `bd` (beads) | No changes. Bead IDs remain the primary key. |
 
 ## 6. State Schema Additions
 
