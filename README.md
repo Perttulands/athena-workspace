@@ -1,6 +1,30 @@
-# Athena Workspace
+# 🔱 Athena's Forge
 
-Personal AI agent orchestration workspace. Athena is a swarm coordinator that decomposes work, dispatches coding agents (Claude, Codex), monitors progress, and delivers verified results.
+_An autonomous coding system with an unreasonable commitment to naming things after Greek mythology._
+
+---
+
+Somewhere on a VPS, there's an AI named Athena orchestrating a swarm of coding agents. She decomposes work into beads, dispatches agents to tmux sessions, watches them through quality gates, and delivers verified results. When things go wrong — and they do — she figures it out, fixes it, and leaves a note.
+
+This is her workspace. The command center. The forge where dispatch orders are written, strategies are planned, and agents are sent into the world.
+
+## The Arsenal
+
+Every tool in the Forge has a name, a purpose, and a mythology. They're standalone projects that work together as a system.
+
+| Tool | What It Is | Repo |
+|------|-----------|------|
+| 👁️ [Argus](https://github.com/Perttulands/argus) | Ops watchdog — monitors health, takes corrective action | The hundred-eyed giant |
+| 🏛️ [Athena Web](https://github.com/Perttulands/athena-web) | Dashboard — see every agent, bead, and run | The portal where all threads are visible |
+| 🧵 [Beads](https://github.com/Perttulands/beads) | Work tracker — distributed, git-backed | The loom |
+| ⚔️ Centurion | Test-gated merge — nothing reaches main unverified | The gate guard (in this repo) |
+| ⚖️ [Oathkeeper](https://github.com/Perttulands/oathkeeper) | Commitment tracker — if an agent promised, we check | The binding word |
+| 🔍 [Truthsayer](https://github.com/Perttulands/truthsayer) | Anti-pattern scanner — 88 rules, 5 languages | The oracle's apprentice |
+| 📡 [Relay](https://github.com/Perttulands/relay) | Agent messaging — filesystem-based, zero message loss | The herald |
+| 🏟️ [Ludus Magnus](https://github.com/Perttulands/ludus-magnus) | Agent training — iterative prompt evolution | The training ground |
+| 🔄 [Learning Loop](https://github.com/Perttulands/learning-loop) | Feedback flywheel — every run improves the next | The spiral path |
+
+Read the full [mythology](mythology.md) for the story behind each name.
 
 ## Quick Start
 
@@ -12,70 +36,67 @@ cd ~/.openclaw/workspace
 # Setup (interactive — prompts for hostname, user, etc.)
 ./setup.sh
 
-# Or non-interactive with env vars
+# Or non-interactive
 ATHENA_USER=myuser ATHENA_HOME=/home/myuser ATHENA_HOSTNAME=my-vps ./setup.sh
 ```
 
-## What's Included
+## How It Works
+
+```
+Human → Athena (coordinator) → dispatch.sh → tmux session → coding agent
+                                                   ↓
+                                             watcher (background)
+                                                   ↓
+                                        verify.sh → wake Athena → deliver result
+```
+
+1. Work arrives as a **bead** on the loom
+2. Athena dispatches a coding agent via `dispatch.sh` — fresh tmux session, fresh context
+3. A background watcher monitors the agent
+4. When done, `verify.sh` runs the quality gauntlet: lint, tests, Truthsayer
+5. **Centurion** guards the merge to main — pass all gates or go home
+6. Results feed back through the **Learning Loop** for next time
+7. **Argus** watches the whole thing to make sure nothing caught fire
+
+## What's In This Repo
 
 | Directory | Contents |
 |-----------|----------|
-| `scripts/` | Dispatch, verify, centurion, ralph, orchestrator scripts |
-| `scripts/lib/` | Shared libraries (common.sh, config.sh, record.sh) |
+| `scripts/` | Dispatch, verify, centurion, orchestrator |
 | `templates/` | Agent prompt templates (feature, bug-fix, refactor, etc.) |
-| `skills/` | Modular skill definitions (beads, coding-agents, argus, etc.) |
-| `docs/` | Architecture docs, guides, PRDs |
+| `skills/` | Modular skill definitions |
+| `docs/` | Architecture docs, guides |
 | `tests/` | E2E and unit tests |
-| `state/schemas/` | JSON schemas for run/result/plan records |
-| `state/designs/` | Design documents |
-| `config/` | Agent configuration (generated from .example) |
+| `config/` | Agent configuration (generated from examples) |
+| `mythology.md` | The full lore — every tool's mythological origin |
 
-## What's NOT Included
+## What's NOT In This Repo
 
 These are gitignored and stay local:
 
-- **`memory/`** — Daily memory files, personal conversations
-- **`state/runs/`, `state/results/`** — Agent output JSON (may contain sensitive data)
-- **`state/watch/`** — Runtime status files
-- **`.beads/`** — Local work tracking database
-- **`TOOLS.md`, `config/agents.json`, `MEMORY.md`** — Environment-specific (generated from `.example` files by `setup.sh`)
-- **API keys, tokens, `.env` files** — Never committed
-- **`openclaw.json`** — Gateway config with tokens
-
-## Architecture
-
-```
-User → Athena (coordinator) → dispatch.sh → tmux session → coding agent
-                                                ↓
-                                          watcher (background)
-                                                ↓
-                                     verify.sh → wake-gateway.sh → Athena
-```
-
-- **dispatch.sh** — Creates tmux sessions with coding agents, background watchers for completion
-- **verify.sh** — Runs lint, tests, truthsayer checks post-agent
-- **ralph.sh** — PRD-driven iterative execution (task by task, fresh sessions)
-- **centurion.sh** — Test-gated merge to main
+- `memory/` — Daily memory, conversations
+- `state/runs/`, `state/results/` — Agent output (may contain sensitive data)
+- `MEMORY.md`, `TOOLS.md`, `USER.md` — Environment-specific (generated by `setup.sh`)
+- API keys, tokens, `.env` files — Never committed
 
 ## Key Files
 
-- `AGENTS.md` — Entry point, swarm quick reference, rules
-- `CLAUDE.md` — Quick reference for reading order
-- `SOUL.md` — Agent identity and operating principles (create from your own)
-- `IDENTITY.md` — Who Athena is (create from your own)
-- `USER.md` — About the human (create from your own)
-- `VISION.md` — Why we build, the dream, principles (create from your own)
+| File | Purpose |
+|------|---------|
+| `AGENTS.md` | Entry point — swarm quick reference, rules |
+| `SOUL.md` | Operating principles — who Athena is at her core |
+| `IDENTITY.md` | Identity — the owl, the mythology, the vibe |
+| `mythology.md` | The full story of every tool and why it's named that |
 
 ## Customization
 
-After running `setup.sh`:
+After `setup.sh`:
 
-1. Edit `USER.md` with your own details
-2. Edit `MEMORY.md` to add your active projects
-3. Configure `~/.openclaw/openclaw.json` for the gateway
-4. Set up API keys in your environment
-5. Install auxiliary tools: beads (`bd`), truthsayer, argus
+1. Write your own `USER.md`, `SOUL.md`, `IDENTITY.md`
+2. Configure agent models in `config/agents.json`
+3. Install the arsenal: [beads](https://github.com/Perttulands/beads), [truthsayer](https://github.com/Perttulands/truthsayer), [argus](https://github.com/Perttulands/argus)
+4. Set up [OpenClaw](https://github.com/openclaw/openclaw) as the gateway
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+MIT
