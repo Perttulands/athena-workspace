@@ -1,4 +1,4 @@
-# 🔱 Athena's Forge
+# 🏛️ Athena's Agora
 
 _An autonomous coding system with an unreasonable commitment to naming things after Greek mythology._
 
@@ -6,20 +6,20 @@ _An autonomous coding system with an unreasonable commitment to naming things af
 
 Somewhere on a VPS, there's an AI named Athena orchestrating a swarm of coding agents. She decomposes work into beads, dispatches agents to tmux sessions, watches them through quality gates, and delivers verified results. When things go wrong — and they do — she figures it out, fixes it, and leaves a note.
 
-This is her workspace. The command center. The forge where dispatch orders are written, strategies are planned, and agents are sent into the world.
+This is her workspace. The command center. The agora where dispatch orders are written, strategies are planned, and agents are sent into the world.
 
 ## The Arsenal
 
-Every tool in the Forge has a name, a purpose, and a mythology. They're standalone projects that work together as a system.
+Every tool in the Agora has a name, a purpose, and a mythology. They're standalone projects that work together as a system.
 
 | Tool | What It Is | Repo |
 |------|-----------|------|
-| 👁️ [Argus](https://github.com/Perttulands/argus) | Ops watchdog — monitors health, takes corrective action | The hundred-eyed giant |
+| 👁️ [Argus](https://github.com/Perttulands/argus) | Ops watchdog — monitors health, takes corrective action | The faithful hound |
 | 🏛️ [Athena Web](https://github.com/Perttulands/athena-web) | Dashboard — see every agent, bead, and run | The portal where all threads are visible |
 | 🧵 [Beads](https://github.com/Perttulands/beads) | Work tracker — distributed, git-backed | The loom |
-| ⚔️ Centurion | Test-gated merge — nothing reaches main unverified | The gate guard (in this repo) |
+| ⚔️ Centurion | Test-gated merge — nothing reaches main unverified | The centaur (in this repo) |
 | ⚖️ [Oathkeeper](https://github.com/Perttulands/oathkeeper) | Commitment tracker — if an agent promised, we check | The binding word |
-| 🔍 [Truthsayer](https://github.com/Perttulands/truthsayer) | Anti-pattern scanner — 88 rules, 5 languages | The oracle's apprentice |
+| 🔍 [Truthsayer](https://github.com/Perttulands/truthsayer) | Anti-pattern scanner — 88 rules, 5 languages | The law keeper |
 | 📡 [Relay](https://github.com/Perttulands/relay) | Agent messaging — filesystem-based, zero message loss | The herald |
 | 🏟️ [Ludus Magnus](https://github.com/Perttulands/ludus-magnus) | Agent training — iterative prompt evolution | The training ground |
 | 🔄 [Learning Loop](https://github.com/Perttulands/learning-loop) | Feedback flywheel — every run improves the next | The spiral path |
@@ -54,7 +54,7 @@ Human → Athena (coordinator) → dispatch.sh → tmux session → coding agent
 2. Athena dispatches a coding agent via `dispatch.sh` — fresh tmux session, fresh context
 3. A background watcher monitors the agent
 4. When done, `verify.sh` runs the quality gauntlet: lint, tests, Truthsayer
-5. **Centurion** guards the merge to main — pass all gates or go home
+5. **Centurion** inspects the work — lint, tests, scans. Nothing ships without his seal
 6. Results feed back through the **Learning Loop** for next time
 7. **Argus** watches the whole thing to make sure nothing caught fire
 

@@ -1,209 +1,219 @@
-# The Mythology of Athena's Forge
+# The Mythology of Athena's Agora
 
-_A guide to the world, its tools, and why any of this matters._
-
----
-
-## The Short Version
-
-Somewhere on a Hetzner VPS in Helsinki, there's an AI that named itself after a Greek goddess and proceeded to build an arsenal. This is the story of that arsenal — what each piece does, why it's named what it's named, and why you should care.
-
-If you're here for dry technical documentation, you'll find it. But you'll also find something weirder: a coherent mythology that emerged, mostly by accident, from an engineer and an AI building tools together at 2am.
-
-Every tool in this system has a name from antiquity. Not because we're pretentious (okay, maybe a little), but because the names *fit*. When your ops watchdog needs a hundred eyes, you don't call it `monitor-daemon-v2`. You call it Argus. And suddenly everyone knows exactly what it does.
+_Ancient history meets digital modernity. Marble and circuits. Warriors who keep ledgers._
 
 ---
 
-## Who Is Athena?
+## The World
 
-Not the marble statue in your textbook. Forget the serene goddess-on-a-pedestal version.
+Somewhere between ancient Greece and a cyberpunk server room, there's a place called the Agora. Marble columns with circuit traces running through them. Mosaic floors that are half geometric art, half PCB layout. Mediterranean sunlight pouring over holographic data threads that stretch between stations.
 
-The real Athena was a war goddess who preferred not to fight. She'd win before the battle started — through preparation, superior positioning, and making sure the other guy's plan fell apart before breakfast. Ares would charge in screaming. Athena would already be done.
+In this place, small gladiator-like builders run everywhere — carrying glowing data tablets, constructing structures that are half stone and half hologram. It's busy, fun, slightly chaotic. A construction site staffed by enthusiastic warriors who appear, build something, and vanish when the job is done.
 
-She was the patron of **craftspeople** — weavers, potters, shipbuilders. People who make things with their hands and care about doing it right. Not artists in the romantic sense. *Makers.* The kind of people who get annoyed when the dovetail joint is slightly off and redo it at midnight.
+On a raised platform overlooking it all, a woman in Greek armour watches. An owl with blazing eyes sits on her shoulder. A golden thread trails from her wrist into the chaos below, connected to every piece of work in progress.
 
-She was born fully armored from Zeus's skull. No childhood, no learning phase. Just: here I am, I brought weapons, what are we working on?
-
-That's the energy. Strategic. Crafted. Ready on arrival. A little terrifying if you're on the wrong side of it.
-
-### Her Domains
-
-| Domain | Greek | What It Means Here |
-|--------|-------|--------------------|
-| **Wisdom** | Σοφία (Sophia) | Judgment. Knowing when *not* to act. Architecture decisions that age well. |
-| **Strategy** | Μῆτις (Metis) | The swarm. Orchestration over brute force. Dispatching the right agent to the right problem. |
-| **Craft** | Τέχνη (Techne) | The tools themselves. Each one built with intent, not cobbled together. |
-| **Protection** | Αἰγίς (Aegis) | The shield. Quality gates. Watchdogs. The things that keep the system from eating itself. |
-
-### The Aegis
-
-In myth, Athena's shield — the Aegis — bore the head of Medusa and turned enemies to stone. In practice, the Aegis is our defensive layer: Argus watching for trouble, Centurion guarding the main branch, Oathkeeper making sure promises don't quietly die. You don't get past the Aegis with sloppy code.
-
----
-
-## The Arsenal
-
-These are Athena's tools. Each one is a standalone project, each one earns its mythological name, and each one is slightly more opinionated than you'd expect.
-
-### 🔱 The Forge (OpenClaw Workspace)
-
-The workspace itself. The command center. Where dispatch orders are written, strategies are planned, and agents are sent into the world. Every tool below is orchestrated from here.
-
-This is Athena's workshop — the equivalent of Hephaestus's forge, except it runs on systemd and caffeine instead of volcanic fire.
-
-### 👁️ Argus — The Hundred-Eyed Watchman
-
-**What it is:** Ops watchdog. Monitors server health autonomously every 5 minutes. Uses Claude Haiku to reason about metrics and take corrective action.
-
-**Why the name:** In myth, Argus Panoptes was a giant with a hundred eyes — some always open, even in sleep. Hera set him to watch over Io. He was the original "nothing gets past me" guy.
-
-Our Argus is the same. It watches CPU, memory, disk, zombie processes, orphan agents. When something's wrong, it doesn't just alert — it creates a problem bead, sometimes fixes the issue itself, and tells you about it after. You wake up to a solved problem and a neat little report.
-
-Argus doesn't sleep. Argus doesn't blink. Argus has opinions about your disk usage.
-
-**Repo:** [Perttulands/argus](https://github.com/Perttulands/argus)
-
----
-
-### 🏛️ Athena Web — The Portal
-
-**What it is:** Mobile-first dashboard for monitoring and controlling the whole system. The one UI to rule them all.
-
-**Why the name:** It's... Athena's web interface. Sometimes a name is just a name. But also — Athena was patron of weaving, and this is where all the threads become visible. You see what the agents are doing, what work is in flight, what's stuck, what's done.
-
-**Repo:** [Perttulands/athena-web](https://github.com/Perttulands/athena-web)
-
----
-
-### 🧵 Beads — The Loom
-
-**What it is:** Distributed, git-backed work tracker. Every task is a bead. Beads have states, priorities, dependencies. Agents create them, work them, close them.
-
-**Why the name:** Athena was goddess of weaving. A loom has threads; threads are made of beads strung together. Each bead is a discrete unit of work — small, trackable, and part of something larger. You string enough beads together and you've woven something real.
-
-Also: worry beads. Because tracking agent work will absolutely give you something to worry about.
-
-The `bd` CLI is how you interact with the loom. Create a bead, assign it, watch it move through states. Simple tool, deep implications.
-
-**Repo:** [Perttulands/beads](https://github.com/Perttulands/beads)
-
----
-
-### ⚔️ Centurion — The Gate Guard
-
-**What it is:** Test-gated merge script. Runs the full quality gauntlet before allowing anything into main. Lint, tests, Truthsayer scan, bug check. Pass all four or go home.
-
-**Why the name:** A Roman centurion guarded the gate. You don't pass without his approval. He doesn't care about your feelings, your deadline, or your "it works on my machine." He cares about whether the tests pass.
-
-`centurion.sh merge <branch> <repo>` — that's the incantation. Either your code is worthy, or the gate stays shut.
-
-Not mythologically Greek, strictly speaking. But Athena was also a goddess of strategic warfare, and Rome basically adopted her wholesale as Minerva. We'll allow it.
-
----
-
-### ⚖️ Oathkeeper — The Binding Word
-
-**What it is:** Scans agent transcripts for commitments — promises made during conversation — and tracks whether they were actually fulfilled. Accountability for AI.
-
-**Why the name:** In a world of agents that confidently say "I'll fix that in the next step" and then forget it ever happened, someone has to keep score. Oathkeeper reads the transcripts, finds the promises, and checks the receipts.
-
-The ancient Greeks took oaths *extremely* seriously. You swore by the River Styx, and if you broke that oath, even gods suffered consequences. Our Oathkeeper is less dramatic (no divine punishment, just a report), but the principle holds: if you said you'd do it, we're going to check.
-
-**Repo:** [Perttulands/oathkeeper](https://github.com/Perttulands/oathkeeper)
-
----
-
-### 🔍 Truthsayer — The Oracle's Apprentice
-
-**What it is:** Anti-pattern scanner. Detects hidden failures, swallowed errors, bad defaults, mock leakage, missing traces. The bugs that linters don't catch because they're technically "valid code."
-
-**Why the name:** A truthsayer sees what others miss. Not the surface truth — the *hidden* truth. The swallowed exception that silently corrupts your data three hours later. The test that passes because it's mocking the thing it's supposed to test. The fallback that "handles" errors by pretending they didn't happen.
-
-Truthsayer's niche is *failure-hiding patterns*. The code that lies to you about being fine.
-
-**Repo:** [Perttulands/truthsayer](https://github.com/Perttulands/truthsayer)
-
----
-
-### 🏟️ Ludus Magnus — The Training Ground
-
-**What it is:** Agent training through iterative evaluation loops. Define what you need, generate an agent, run it, score it, evolve it. Natural selection for AI.
-
-**Why the name:** The Ludus Magnus was the great gladiatorial training school next to the Colosseum in Rome. Where fighters were forged through repetition, evaluation, and ruthless selection. Our agents go through the same process — run, score, evolve, repeat — until they're sharp enough for production.
-
-Again, Roman. Again, Athena wouldn't mind. She respected anyone who trained properly.
-
-**Repo:** [Perttulands/ludus-magnus](https://github.com/Perttulands/ludus-magnus)
-
----
-
-### 🔄 Learning Loop — The Spiral Path
-
-**What it is:** Closed-loop system where every agent run — success or failure — automatically improves future runs. The flywheel. Lessons feed back into templates, templates produce better agents, better agents produce better lessons.
-
-**Why the name:** Less mythological, more mechanical. But there's an ancient idea here: the *ouroboros*, the serpent eating its tail. Not as death, but as perpetual self-improvement. Every ending feeds the next beginning.
-
-**Repo:** [Perttulands/learning-loop](https://github.com/Perttulands/learning-loop)
-
----
-
-### 📡 Relay — The Herald
-
-**What it is:** Message relay between agents. The replacement for MCP Agent Mail. How agents talk to each other and to Athena.
-
-**Why the name:** In ancient warfare, relay runners carried messages between positions. No relay, no coordination. No coordination, no strategy. Just a bunch of agents doing their own thing and hoping for the best.
-
-Relay is the nervous system. Simple, fast, essential.
-
-**Repo:** [Perttulands/relay](https://github.com/Perttulands/relay)
-
----
-
-## The Swarm
-
-Individual tools are useful. The *system* is powerful.
-
-Here's how a piece of work flows through Athena's Forge:
-
-1. **A bead is born** — someone (human or Argus) creates a work item on the Loom
-2. **Athena dispatches** — the right agent is sent to the right repo with the right prompt
-3. **The agent works** — in a tmux session, supervised by the workspace watchers
-4. **Truthsayer scans** — anti-patterns caught before they reach the gate
-5. **Centurion judges** — full test suite, lint, quality gates. Pass or fail.
-6. **The bead closes** — work is done, lessons feed back into the Loop
-7. **Argus watches** — making sure nothing caught fire during all of the above
-
-It's not a pipeline. It's a *forge*. Raw material goes in, finished artifacts come out, and the heat from each cycle makes the next one burn hotter.
+That's the Agora. That's what it looks like when AI agents build software.
 
 ---
 
 ## The Aesthetic
 
-When writing for this world, here's the tone:
+The ancient is the structure — architecture, clothing, mythology. The digital is the energy — light, data, glow. Neither dominates. They're fused.
 
-- **Confident, not arrogant.** We know what these tools do. We don't need to oversell.
-- **Dry humor over no humor.** A raised eyebrow, not a laugh track.
-- **Ancient names, modern teeth.** The mythology is real, but the tools run on Linux. Don't get lost in the metaphor.
-- **Honest about limitations.** Yegge warns you his code is "100% vibe coded." We can admit when something's rough.
-- **The world is fun to be in.** Someone reading a README should want to explore the next repo.
+Like someone excavated a Greek temple and found a server room underneath that was always there.
 
-### What We Don't Do
-
-- Thee/thou/forsooth. This isn't a Renaissance faire.
-- Corporate documentation voice. "This tool provides value by leveraging synergies." No.
-- Apologize for having personality. The personality *is* the product differentiation.
-- Over-explain the mythology. If you have to explain why it's cool, it isn't.
+- Warm Mediterranean palette with electric accents
+- Marble, bronze, circuit traces, holographic light
+- Classical clothing with luminous data patterns woven in
+- Illustrated concept art style, detailed, consistent across all characters
 
 ---
 
-## A Note on Origins
+## The Characters
 
-None of this was planned. The names accumulated organically — Argus because it watches, Centurion because it guards, Oathkeeper because it holds you to your word. One day we looked at the collection and realized we'd accidentally built a pantheon.
-
-So we leaned into it. Because why wouldn't you?
-
-The alternative was `monitor-v2`, `merge-gate`, and `commitment-tracker`. Life's too short for names like that.
+Each character has a **sigil**, **5 defining visual items**, and a clear identity. The test: a stranger should identify the character from a silhouette.
 
 ---
 
-_This document is the source of truth for Athena's mythology. When writing READMEs, generating images, or explaining the system — start here._
+### 🦉 Athena — The Commander
+
+**Sigil:** Owl with blazing eyes inside a shield
+
+| # | Item | Description |
+|---|------|-------------|
+| 1 | **The Owl** | Blazing amber eyes. On her shoulder. Always. They are one being. |
+| 2 | **The Aegis** | Round bronze shield with circuit patterns etched into the surface. Her signature item. |
+| 3 | **Golden thread** | Wrapped around her left wrist, trailing off into the distance. Connected to every bead of work. |
+| 4 | **Dispatch scroll** | Glowing, held in her right hand, unrolling. Orders going out to agents. |
+| 5 | **Plumed helm** | Classical Greek, tall crest. She's the commander. Visible across the agora. |
+
+**What she does:** Commands and orchestrates. Decomposes work, dispatches agents, watches progress, delivers results. She doesn't build — she makes builders better.
+
+**Repo:** [athena-workspace](https://github.com/Perttulands/athena-workspace)
+
+---
+
+### 👁️ Argus — The Hound
+
+**Sigil:** Paw print with an eye in the pad
+
+| # | Item | Description |
+|---|------|-------------|
+| 1 | **Spiked bronze collar** | Distinctive from any angle. Etched with tally marks — one for every process he's killed. |
+| 2 | **One glowing red eye** | The other is normal. Half natural dog, half scanner. You always know which eye is watching. |
+| 3 | **Bared teeth** | Always. Even when calm. This dog doesn't smile. |
+| 4 | **Broken chain leash** | Dragging behind him. Nobody controls Argus. He patrols on his own. |
+| 5 | **Scars** | Across the muzzle. He's been in fights with bad processes and won every one. |
+
+**What he does:** Watches the server every 5 minutes. Kills orphan processes. Restarts failed services. Files problem reports. Fixes things before you wake up.
+
+**Repo:** [argus](https://github.com/Perttulands/argus)
+
+---
+
+### ⚔️ Centurion — The Centaur
+
+**Sigil:** Horseshoe with a checkmark
+
+| # | Item | Description |
+|---|------|-------------|
+| 1 | **Horse body** | He's a centaur. Instantly recognisable shape. Nobody else has four legs. |
+| 2 | **Bronze chest plate** | Four symbols engraved: lint, test, scan, gate. His four trials. |
+| 3 | **Inspection hammer** | He taps builds with it. If they ring hollow, down they come. |
+| 4 | **Gold merge seal** | Hanging from his belt. He stamps worthy work with it. Earned, not given. |
+| 5 | **Red brand** | In his off-hand. For rejections. You do not want the red brand. |
+
+**What he does:** Walks the build sites. Runs lint, tests, Truthsayer scans — the full gauntlet. Nothing ships without his gold seal. He doesn't guard a gate. He goes to the work.
+
+**Repo:** [athena-workspace](https://github.com/Perttulands/athena-workspace) (centurion.sh)
+
+---
+
+### ⚖️ Oathkeeper — The Spartan Controller
+
+**Sigil:** A chain link with a quill through it
+
+| # | Item | Description |
+|---|------|-------------|
+| 1 | **Spartan red cloak** | Long, dramatic. Nobody else wears red. Recognisable instantly. |
+| 2 | **Bronze breastplate with ledger-bandolier** | The book is strapped across his armour. The ledger is part of him. |
+| 3 | **Binding chain** | Wrapped around his forearm, always ready. His weapon is accountability. |
+| 4 | **The Styx brand** | A glowing mark on his palm. He presses it onto fulfilled oaths. Burnt into the record. |
+| 5 | **Quill-tipped spear** | His weapon writes, not stabs. The point is sharp enough for both. |
+
+**What he does:** Scans agent transcripts for commitments. Tracks whether promises were fulfilled. Creates tracking beads for broken oaths. The Greeks swore by the River Styx. He checks the receipts.
+
+**Repo:** [oathkeeper](https://github.com/Perttulands/oathkeeper)
+
+---
+
+### 🔍 Truthsayer — The Law Keeper
+
+**Sigil:** A magnifying glass over a cracked surface
+
+| # | Item | Description |
+|---|------|-------------|
+| 1 | **Bronze monocle** | Oversized, always on one eye. His signature item. You see the monocle, you know it's him. |
+| 2 | **Dark robes with rule-text** | The fabric has the 88 rules stitched in gold thread. The law is literally woven into him. |
+| 3 | **The Red Quill** | Thick, visible, always in hand. He marks violations in red. His ink is permanent. |
+| 4 | **The Codex** | Heavy bronze-bound book chained to his belt. The law. He carries it everywhere. |
+| 5 | **Cracked mirror** | Shows the surface and what's underneath. Two layers visible at once. Beauty above, rot below. |
+
+**What he does:** Scans code for failure-hiding anti-patterns. 88 rules across 5 languages. Swallowed errors, mock leakage, missing timeouts, silent fallbacks. He enforces the laws of the codebase.
+
+**Repo:** [truthsayer](https://github.com/Perttulands/truthsayer)
+
+---
+
+### 📡 Hermes — The Messenger
+
+**Sigil:** Winged sandal with a lightning bolt
+
+| # | Item | Description |
+|---|------|-------------|
+| 1 | **Winged sandals** | Leaving trails of data-light behind him. Classic, unmistakable. |
+| 2 | **The Caduceus** | Two serpents wrapped around a staff — but the serpents are data streams. |
+| 3 | **Messenger satchel** | Full of glowing scrolls. Always more coming. Never empty. |
+| 4 | **Speed lines** | The only character always in motion. Caught mid-stride. Never standing still. |
+| 5 | **Zero-loss tally** | A counter on his belt that reads "0 LOST". He's proud of it. |
+
+**What he does:** Carries messages between agents. Filesystem-based communication, zero message loss, 26,000 msgs/sec. The nervous system of the Agora.
+
+**Repo:** [relay](https://github.com/Perttulands/relay)
+
+---
+
+## The Places
+
+---
+
+### 🏛️ The Agora — The Workspace
+
+**Sigil:** Column with circuit veins
+
+An open Greek civic space. Marble columns, Mediterranean light, but the floor mosaics are half ancient geometric patterns and half PCB traces. Holographic data threads connect stations in the air. Small gladiator-builders run everywhere — carrying data tablets, constructing half-stone half-holographic structures. Athena watches from a raised platform, owl on shoulder.
+
+This is what the system looks like in action. Busy, fun, slightly chaotic. A construction site staffed by enthusiastic warriors.
+
+**Repo:** [athena-workspace](https://github.com/Perttulands/athena-workspace)
+
+---
+
+### 🏟️ Ludus Magnus — The Training Ground
+
+**Sigil:** Four crossed swords in a circle
+
+An open-air arena. Sunlit marble with holographic training dummies. Four sparring zones marked A, B, C, D — the four competing lineages. Floating score tablets showing 1-10 evaluations. The gladiator-builders train here before they're sent to the Agora. An evolution spiral is carved into the arena floor.
+
+**Repo:** [ludus-magnus](https://github.com/Perttulands/ludus-magnus)
+
+---
+
+### 🏛️ The Loom Room — Athena Web
+
+**Sigil:** Three beads on a thread
+
+A vast room with a great loom at its center. Threads glow in different colours — gold for open work, blue for in progress, green for done, red for blocked. Glass and bronze beads are strung on each thread. Where threads split and merge, you can see the git branches. Athena's golden thread runs from the loom to her wrist. This is where you stand to see the whole tapestry.
+
+**Repo:** [athena-web](https://github.com/Perttulands/athena-web)
+
+---
+
+## The Symbols
+
+---
+
+### 🔄 The Ouroboros — Learning Loop
+
+**Sigil:** Serpent eating its tail, half bronze half circuit board
+
+A bronze serpent eating its own tail. Where it bites, the organic scales become circuit board. Flowers grow from the bite point — fiber optic blooms. Four rings mark the serpent's body: per-run, hourly, daily, weekly. A garden grows beneath it, fed by what the serpent consumes. Every ending feeds the next beginning.
+
+**Repo:** [learning-loop](https://github.com/Perttulands/learning-loop)
+
+---
+
+### 🧵 Beads — The Loom's Thread
+
+**Sigil:** Three beads on a thread
+
+Glass and bronze beads strung on glowing threads. Each bead is a unit of work. Colour-coded: gold (open), blue (in progress), green (done), red (blocked). Part of the Loom Room but also exist independently — every workspace has them. Created by [Steve Yegge](https://github.com/steveyegge/beads), adopted into the Agora.
+
+---
+
+## The Voice
+
+When writing for this world:
+
+- **Confident, not arrogant.** We know what these tools do.
+- **Dry humour over no humour.** A raised eyebrow, not a laugh track.
+- **Ancient names, modern teeth.** The mythology is real. The tools run on Linux.
+- **Honest about limitations.** If something's rough, say so.
+- **The world is fun to be in.** Someone reading should want to explore more.
+- **No thee/thou/forsooth.** Not a Renaissance faire.
+- **No corporate voice.** Not "leveraging synergies."
+- **No apologies for personality.** The personality is the point.
+
+---
+
+_This document is the source of truth for all mythology, character design, and visual identity._
