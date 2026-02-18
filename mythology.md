@@ -166,7 +166,7 @@ This is what the system looks like in action. Busy, fun, slightly chaotic. A con
 
 **Sigil:** Four crossed swords in a circle
 
-An open-air arena. Sunlit marble with holographic training dummies. Four sparring zones marked A, B, C, D — the four competing lineages. Floating score tablets showing 1-10 evaluations. The gladiator-builders train here before they're sent to the Agora. An evolution spiral is carved into the arena floor.
+An open-air arena. Sunlit marble with holographic training dummies. Four sparring zones marked A, B, C, D — the four competing lineages. Floating score tablets showing 1-10 evaluations. Any agent — coding, research, customer service, analysis — trains here before deployment. An evolution spiral is carved into the arena floor.
 
 **Repo:** [ludus-magnus](https://github.com/Perttulands/ludus-magnus)
 
