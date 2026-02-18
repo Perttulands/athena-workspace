@@ -11,6 +11,8 @@ Somewhere on a VPS, there's an AI named Athena orchestrating a swarm of coding a
 
 This is her workspace. The command center. The agora where dispatch orders are written, strategies are planned, and agents are sent into the world.
 
+![System Layers](assets/system-layers-flywheel.jpg)
+
 ## The Arsenal
 
 Every tool in the Agora has a name, a purpose, and a mythology. They're standalone projects that work together as a system.
