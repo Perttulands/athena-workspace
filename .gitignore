@@ -1,5 +1,6 @@
 # ── Private / personal ────────────────────────────────────────────────────────
 SOUL.md
+HEARTBEAT.md
 IDENTITY.md
 USER.md
 VISION.md
@@ -68,3 +69,6 @@ inbox/done/
 inbox/failed/
 inbox/processing/
 inbox/incoming/
+.beads.backup-*/
+.beads.legacy-*/
+.beads.pre-*/

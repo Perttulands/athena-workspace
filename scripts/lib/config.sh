@@ -57,7 +57,7 @@ validate_agent_type() {
 
 # Build the full command array for an agent. Sets AGENT_CMD array and MODEL variable.
 # Usage: build_agent_cmd claude opus
-#   → AGENT_CMD=(claude --dangerously-skip-permissions --model opus --mcp-config ...)
+#   → AGENT_CMD=(claude --dangerously-skip-permissions --model opus ...)
 #   → MODEL=opus
 build_agent_cmd() {
     local agent="$1"
@@ -99,7 +99,7 @@ build_agent_cmd() {
 
             AGENT_CMD+=("$model_flag" "$full_model")
 
-            # MCP config for Agent Mail coordination
+            # Optional MCP config for Claude tool servers (if configured)
             local mcp_config
             mcp_config=$(config_get '.claude.mcp_config // empty')
             if [[ -n "$mcp_config" && -f "$mcp_config" ]]; then

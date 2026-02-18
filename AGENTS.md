@@ -1,52 +1,65 @@
-# AGENTS.md — Workspace Map
+# AGENTS.md — Athena Repo Map
 
-Use this file as a map only. Source-of-truth behavior lives in linked docs.
+This file is a navigator. Canonical behavior and policy live in the linked docs.
 
-## North Star
+## Start Here
 
-- Canonical feature behavior lives in `docs/features/<feature>/PRD.md`.
-- Execution sequencing lives in `docs/specs/ralph/` (not in canonical PRDs).
-- Historical or deprecated docs live in `docs/archive/YYYY-MM/`.
+1. `docs/INDEX.md` — full documentation index
+2. `TOOLS.md` — local machine/services/tooling (generated, local)
+3. `docs/standards/prd-governance.md` — PRD non-negotiables
 
 ## What Is Where
 
-| Path | What belongs here |
+| Path | Purpose |
 |---|---|
-| `SOUL.md` + `USER.md` | Identity, operating intent, and human context |
-| `TOOLS.md` | Services, CLIs, and local environment details |
-| `docs/INDEX.md` | Master documentation navigation |
-| `docs/features/<feature>/PRD.md` | One canonical PRD per active feature |
-| `docs/specs/ralph/` | Ralph-oriented execution specs and sequencing |
-| `docs/standards/prd-governance.md` | Canonical PRD structure, policy, and enforcement |
-| `docs/archive/YYYY-MM/` | Deprecated/superseded drafts, reviews, audits |
-| `scripts/` | Automation, lint guards, and orchestration tooling |
-| `memory/YYYY-MM-DD.md` | Daily memory log (file-based memory) |
-| `state/` | Generated runs, reports, and runtime logs |
-| `mythology.md` | Strategic concept and product mythology |
+| `README.md` | System overview and repo role in the broader stack |
+| `docs/features/<feature>/PRD.md` | Canonical product PRDs (source of truth) |
+| `docs/specs/ralph/` | Execution specs and implementation sequencing |
+| `docs/archive/YYYY-MM/` | Historical drafts, reviews, and audits |
+| `scripts/` | Dispatch, verify, merge, governance automation |
+| `templates/` | Dispatch prompt templates |
+| `skills/` | Skill docs and operational playbooks |
+| `config/agents.json` | Active agent command/model config (local) |
+| `tests/e2e/` | End-to-end checks for core system behavior |
+| `memory/YYYY-MM-DD.md` | Daily memory files (local, not committed) |
+| `state/` | Runtime outputs, runs/results, reports (local runtime data) |
+
+## Coordination Model
+
+- Shared-directory, shared-branch execution; no worktree manager flow.
+- `scripts/dispatch.sh` injects active-agent context to reduce overlap.
+- Completion signaling is `wake-gateway` + dispatch watcher.
+- `mcp-agent-mail` is retired and removed from live runtime.
+
+## PRD Rules
+
+- One canonical PRD per active feature: `docs/features/<feature>/PRD.md`.
+- Canonical PRDs define behavior and UX outcomes, not execution checklists.
+- Required sections: Overview/Objectives, Personas/User Stories, Functional Scope, Definition of Done.
+- Ralph-style task sequencing belongs in `docs/specs/ralph/`.
 
 ## Daily Loop
 
 ```bash
 bd create --title "task" --priority 1
-./scripts/dispatch.sh <bead> <repo> codex "prompt"
+./scripts/dispatch.sh <bead> <repo> <agent> "<prompt>"
 ./scripts/verify.sh <repo> [bead]
 ./scripts/centurion.sh merge <branch> <repo>
 bd close <bead>
 ```
 
-## Ground Rules
+## Guardrails
 
-- `bd` is the only bead CLI in this workspace.
-- One canonical PRD per active feature: `docs/features/<feature>/PRD.md`.
-- Canonical PRDs are product behavior docs, not execution checklists.
-- Ralph execution checklists stay in `docs/specs/ralph/`.
-- Prefer `trash` over `rm` for local cleanup.
-- Never use forced git rewrites (`git push --force*`) as a retry pattern.
-- Use force-push only for explicit recovery with snapshot + clear intent.
+- `bd` is the only supported bead CLI in this workspace.
+- Do not use forced git rewrites as a retry pattern.
+- Keep active docs accurate; move superseded material to `docs/archive/`.
+- Prefer `trash` over destructive deletion.
 
-## Cleanup Plan Status
+## Maintenance Checks
 
-1. Canonical PRD governance and linting (`scripts/prd-lint.sh`) is in place.
-2. Workspace cutover from hidden path to `/home/perttu/athena` is complete.
-3. Hidden-path lint guard is active (`scripts/lint-no-hidden-workspace.sh`).
-4. Compatibility symlink soak is temporary; remove after final old-path sweep.
+```bash
+./scripts/lint-no-hidden-workspace.sh
+./scripts/prd-lint.sh
+./scripts/doc-gardener.sh
+./scripts/doc-governance-weekly.sh
+```

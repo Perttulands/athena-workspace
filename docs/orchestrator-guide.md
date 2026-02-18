@@ -123,7 +123,7 @@ The orchestrator integrates these components:
 
 1. **planner.sh**: Reads plans to get pending tasks
 2. **calibrate.sh**: Checks historical accept/reject patterns
-3. **dispatch.sh**: Launches agents on shared branch (agents coordinate via MCP Agent Mail)
+3. **dispatch.sh**: Launches agents on shared branch (agents coordinate via shared run context)
 4. **verify.sh**: Already integrated into dispatch.sh completion
 5. **poll-agents.sh**: Can inspect agent status independently (`--json` for machine-readable)
 

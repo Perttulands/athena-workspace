@@ -39,6 +39,6 @@ Do not commit if the script fails.
 
 ## Report
 
-Use MCP Agent Mail `send_message` tool to notify completion:
+Provide a final plain-text completion summary:
 - **subject**: `Script complete: {{BEAD_ID}}`
 - **body**: script path, usage, test results, commit SHA

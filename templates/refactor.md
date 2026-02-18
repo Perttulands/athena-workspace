@@ -36,6 +36,6 @@ Do not commit if test results differ from baseline.
 
 ## Report
 
-Use MCP Agent Mail `send_message` tool to notify completion:
+Provide a final plain-text completion summary:
 - **subject**: `Refactoring complete: {{BEAD_ID}}`
 - **body**: what changed structurally, test results, commit SHA

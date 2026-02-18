@@ -5,7 +5,6 @@
     "agent_mode": {
       "flags": ["-p", "--dangerously-skip-permissions"],
       "model_flag": "--model",
-      "mcp_flag": "--mcp-config",
       "stdin": "prompt piped via stdin"
     },
     "models": {
@@ -14,12 +13,10 @@
       "haiku": "haiku"
     },
     "default_model": "opus",
-    "mcp_config": "{{HOME}}/mcp_agent_mail/.mcp.json",
     "invalid_model_behavior": "fails_fast",
     "useful_flags": {
       "--system-prompt": "Custom system prompt",
       "--append-system-prompt": "Append to default system prompt",
-      "--mcp-config": "Load MCP servers from JSON files",
       "--effort": "low, medium, high",
       "--add-dir": "Additional directories for tool access",
       "--permission-mode": "acceptEdits, bypassPermissions, default, plan"
@@ -56,7 +53,7 @@
     },
     "warnings": [
       "We use --yolo (alias for --dangerously-bypass-approvals-and-sandbox). Never use --full-auto (sandboxed, no network).",
-      "Invalid model does NOT fail fast — starts session, loads MCP, then errors at API call"
+      "Invalid model does NOT fail fast — starts session, then errors at API call"
     ]
   },
   "repos": {

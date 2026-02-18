@@ -11,7 +11,6 @@
 | Service | Port |
 |---------|------|
 | openclaw-gateway | 18500 |
-| mcp-agent-mail | 8765 |
 | athena-web | 9000 |
 
 ## CLI Tools
@@ -35,12 +34,7 @@
 - Socket: /tmp/openclaw-coding-agents.sock
 - Sessions named: agent-<bead-id>
 - Config: config/agents.json (models, flags, commands)
-- Claude runs in agentic mode (not print mode) with MCP Agent Mail
-
-## MCP Agent Mail
-
-- Endpoint: http://127.0.0.1:8765/api/
-- Auth: Bearer token in {{HOME}}/mcp_agent_mail/.env
+- Completion signaling: dispatch watcher + wake-gateway callback
 
 ## Key Paths
 
@@ -51,5 +45,4 @@
 - Run records: ~/athena/state/runs/
 - Results: ~/athena/state/results/
 - OpenClaw config: ~/.openclaw/openclaw.json
-- Agent mail: ~/mcp_agent_mail/
 - Argus: ~/argus/

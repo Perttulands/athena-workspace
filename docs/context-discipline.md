@@ -27,8 +27,8 @@ Your context window is your lifeblood. Every tool call, every poll, every line o
 You must always be available to Perttu. Never wait synchronously on agents.
 
 - **Dispatch agents → schedule cron wake → reply immediately.** The wake callback brings you back when there's something to do.
-- **Agents mail you via MCP Agent Mail.** dispatch.sh watcher is the guaranteed fallback.
-- **Two independent signals.** Agent mail (rich context) + background watcher (guaranteed). Either one wakes you.
+- **Completion comes from dispatch outputs + wake callbacks.** dispatch.sh watcher remains the guaranteed fallback.
+- **Two independent signals.** Wake callback + background watcher. Either one wakes you.
 - **If you're occupied waiting, Perttu has no coordinator.** That's a system failure.
 
 ## Why This Matters

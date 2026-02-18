@@ -33,7 +33,7 @@ Do not commit if tests fail.
 
 ## Report
 
-Use MCP Agent Mail `send_message` tool to notify completion:
+Provide a final plain-text completion summary:
 - **subject**: `Feature complete: {{BEAD_ID}}`
 - **body**: what was added, files changed, test results, commit SHA
 

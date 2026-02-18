@@ -9,14 +9,14 @@ Independent ops watchdog (systemd service, 5-min loop). Uses Claude Haiku for re
 
 ## What It Monitors
 
-- Services: openclaw-gateway, mcp-agent-mail status
+- Services: openclaw-gateway, athena-web status
 - System: memory, disk, load, uptime
 - Processes: orphan node --test, tmux sessions
 - Agents: active tmux session counts
 
 ## What It Can Do (5 allowlisted actions)
 
-1. restart_service (openclaw-gateway or mcp-agent-mail)
+1. restart_service (athena-web only)
 2. kill_pid (node/claude/codex processes only)
 3. create_problem_bead (via `bd`)
 4. send_alert (Telegram)

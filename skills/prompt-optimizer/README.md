@@ -276,16 +276,15 @@ Identify patterns that work well in one template and suggest applying to others:
 ./skills/prompt-optimizer/optimize-prompts.sh --cross-pollinate
 ```
 
-### Integration with Agent Mail
+### Integration with Wake Callback
 Auto-report optimization suggestions to Athena when degradation detected:
 ```bash
 # In cron or watch loop
 BEFORE=$(jq '.templates[] | select(.name == "feature.md") | .metrics.success_rate' state/last-optimization.json)
 AFTER=$(./skills/prompt-optimizer/optimize-prompts.sh --json | jq '.templates[] | select(.name == "feature.md") | .metrics.success_rate')
 if (( $(echo "$AFTER < $BEFORE - 0.1" | bc -l) )); then
-  # Success rate dropped >10%, alert Athena
-  curl -X POST http://127.0.0.1:8765/api/send \
-    -d '{"from":"optimizer","to":"athena","subject":"Template degradation alert","body":"feature.md success rate dropped from '"$BEFORE"' to '"$AFTER"'"}'
+  # Success rate dropped >10%, wake Athena
+  ./scripts/wake-gateway.sh "Template degradation alert: feature.md success rate dropped from $BEFORE to $AFTER"
 fi
 ```
 
@@ -342,9 +341,7 @@ if [[ -n "$WORST" ]]; then
   # Notify Athena
   REPORT=$(jq -r --arg tpl "$WORST" '.templates[] | select(.name == $tpl) | "Success rate: \(.metrics.success_rate * 100 | floor)%\nRetry rate: \(.metrics.retry_rate * 100 | floor)%"' state/optimization-report-$(date +%Y%m%d).json)
 
-  curl -X POST http://127.0.0.1:8765/api/send \
-    -H "Content-Type: application/json" \
-    -d "{\"from\":\"optimizer\",\"to\":\"athena\",\"subject\":\"Weekly optimization: $WORST needs attention\",\"body\":\"$REPORT\"}"
+  ./scripts/wake-gateway.sh "Weekly optimization: $WORST needs attention. $REPORT"
 fi
 ```
 

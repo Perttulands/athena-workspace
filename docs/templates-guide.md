@@ -98,7 +98,7 @@ Every template has these sections:
 3. **Context Files to Read**: Which files to examine first
 4. **Constraints**: Hard rules and boundaries
 5. **Verify**: How to validate work (tests, lint, etc.)
-6. **Report**: Notify Athena via MCP Agent Mail `send_message` tool
+6. **Report**: Provide a clear completion summary in the session output
 
 ## Writing Templates
 
@@ -131,12 +131,12 @@ Example structure:
 - [ ] Docs updated if public API changed
 
 ## Report
-Use MCP Agent Mail `send_message` tool to notify completion.
+Write a final completion summary in plain text.
 ```
 
 ## Reporting Results
 
-All templates instruct the agent to report via MCP Agent Mail `send_message` tool:
+All templates instruct the agent to report via final plain-text summary:
 - **Subject**: `<task-type> complete: {{BEAD_ID}}`
 - **Body**: What was done, files changed, test results, commit SHA
 - If stopped at time budget, subject uses `CHECKPOINT` instead and includes decomposition proposal

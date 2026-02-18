@@ -29,9 +29,9 @@ bd create --title "Description of work" --priority 1
 
 dispatch.sh handles:
 - Model resolution from config/agents.json
-- Claude runs in agentic mode (tool access, MCP Agent Mail) — NOT print mode
+- Claude runs in agentic mode (tool access) — NOT print mode
 - tmux session creation (named `agent-<bead-id>`)
-- Coordination context injected (other active agents, Agent Mail instructions)
+- Coordination context injected (other active agents and overlap-avoidance instructions)
 - Run/result records in state/runs/ and state/results/
 - Background watcher for completion detection
 - Wake callback to Athena on completion
@@ -66,7 +66,7 @@ Templates in `templates/` for common patterns (feature, bug-fix, refactor, docs)
 ## Monitoring
 
 dispatch.sh runs a background watcher. Completion signals arrive via:
-1. MCP Agent Mail (rich context from agent)
+1. wake-gateway callback
 2. Background watcher → cron wake (guaranteed)
 
 Do not poll. Wait for the signal.
@@ -95,14 +95,14 @@ Failed agents get max 2 retries (fresh session each time). After 2 failures → 
 
 ## Parallel Work
 
-Multiple agents share the same directory and branch, coordinating via MCP Agent Mail:
+Multiple agents share the same directory and branch with dispatch-injected context:
 ```bash
 ./scripts/dispatch.sh <bead-a> <repo-path> claude:sonnet "prompt A" --branch feature-x
 ./scripts/dispatch.sh <bead-b> <repo-path> claude:sonnet "prompt B" --branch feature-x
 ```
 
-No worktrees. Agents share one repo directory. dispatch.sh injects coordination context (other active agents, Agent Mail instructions) into each agent's prompt automatically.
+No worktrees. Agents share one repo directory. dispatch.sh injects coordination context (other active agents and overlap warnings) into each agent's prompt automatically.
 
-Agents use Agent Mail to: register, reserve files, announce plans, coordinate.
+Agents coordinate by explicitly declaring scope in their first response and avoiding overlapping file edits.
 Auto-commit on agent exit ensures work is never lost.
 When all agents are done: `./scripts/centurion.sh merge feature-x <repo-path>`

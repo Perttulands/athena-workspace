@@ -23,7 +23,7 @@ tests/
 │   ├── test-beads-lifecycle.sh    bd create → show → close
 │   ├── test-dispatch.sh           Full dispatch pipeline (E2E_RESULT markers)
 │   ├── test-dispatch-lifecycle.sh Full dispatch with isolated socket
-│   ├── test-services.sh           Service health (gateway, agent mail, athena-web)
+│   ├── test-services.sh           Service health (gateway, athena-web)
 │   ├── test-tools.sh              CLI tool availability
 │   ├── test-truthsayer-scan.sh    Truthsayer JSON output
 │   ├── test-wake-gateway.sh       Wake signal delivery

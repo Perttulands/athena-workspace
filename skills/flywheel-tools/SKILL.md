@@ -1,6 +1,6 @@
 ---
 name: flywheel-tools
-description: Agentic coding flywheel tools for multi-agent coordination. Use when managing beads (work tracking), searching agent sessions, coordinating agents via MCP Agent Mail, scanning for bugs, or managing repos.
+description: Agentic coding flywheel tools for work tracking, session search, bug scanning, and repo operations.
 ---
 
 # Flywheel Tools
@@ -34,18 +34,10 @@ ntm list                               # List sessions
 ntm palette                            # TUI command palette
 ```
 
-## MCP Agent Mail
+## Coordination Notes
 
-Multi-agent coordination. Port 8765. JSON-RPC 2.0 over HTTP.
-
-Key tools: `ensure_project`, `register_agent`, `send_message`, `fetch_inbox`, `file_reservation_paths`, `macro_start_session`.
-
-Agent names are auto-generated (e.g. "GoldOwl"). Use exact names from `register_agent` response.
-
-```bash
-systemctl status mcp-agent-mail      # Check service
-systemctl restart mcp-agent-mail     # Restart
-```
+The workspace no longer uses MCP Agent Mail. Agent coordination relies on dispatch context,
+shared-branch discipline, and wake callbacks.
 
 ## RTK — Token Reduction Proxy
 

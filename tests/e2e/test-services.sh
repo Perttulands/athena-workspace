@@ -97,7 +97,6 @@ service_active() {
 echo "== Services Health E2E =="
 
 probe_http_any_path "openclaw-gateway" "18500"
-probe_http_any_path "mcp-agent-mail" "8765"
 probe_http_html_root "athena-web" "9000"
 
 if service_active "argus"; then

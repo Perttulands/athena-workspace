@@ -33,6 +33,6 @@ Do not commit if examples fail.
 
 ## Report
 
-Use MCP Agent Mail `send_message` tool to notify completion:
+Provide a final plain-text completion summary:
 - **subject**: `Docs complete: {{BEAD_ID}}`
 - **body**: what was documented, files changed, commit SHA

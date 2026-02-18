@@ -25,4 +25,4 @@ Reusable prompt templates for coding agent dispatch via `dispatch.sh`.
 
 Every template follows: **Objective → Context → Constraints → Verify → Report**
 
-All templates (except refine/code-review) report to Athena via MCP Agent Mail at `http://127.0.0.1:8765/api/send`.
+All templates (except refine/code-review) report to Athena via final plain-text completion summary in the session output.

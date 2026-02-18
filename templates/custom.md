@@ -30,7 +30,7 @@ Do not commit if tests fail.
 
 ## Report
 
-Use MCP Agent Mail `send_message` tool to notify completion:
+Provide a final plain-text completion summary:
 - **subject**: `Custom task complete: {{BEAD_ID}}`
 - **body**: what was done, files changed, test results, commit SHA, time taken
 

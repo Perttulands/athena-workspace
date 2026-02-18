@@ -35,6 +35,6 @@ Do not commit if tests fail.
 
 ## Report
 
-Use MCP Agent Mail `send_message` tool to notify completion:
+Provide a final plain-text completion summary:
 - **subject**: `Bug fix complete: {{BEAD_ID}}`
 - **body**: root cause, fix description, test results, commit SHA

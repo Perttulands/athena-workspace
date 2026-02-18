@@ -93,8 +93,8 @@ Model aliases (e.g., "opus") are resolved to full names (e.g., "claude-opus-4-6"
 When `--branch` is specified, dispatch.sh enables coordination:
 
 1. `build_coordination_context()` scans `state/runs/` for other active agents on the same repo
-2. Injects Agent Mail instructions and co-agent awareness into the prompt
-3. Agents register with MCP Agent Mail, reserve files, and message each other
+2. Injects active-agent context and coordination instructions into the prompt
+3. Agents avoid overlap via shared run context and branch discipline
 4. Auto-commit on agent exit captures work (runner trap: `git add -A && git commit`)
 5. When all agents finish: `centurion.sh merge <branch> <repo>` merges to main
 

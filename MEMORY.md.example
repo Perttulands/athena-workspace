@@ -13,9 +13,9 @@
 
 ## The System
 - VPS: {{HOSTNAME}}
-- Services: openclaw-gateway (18500), mcp-agent-mail (8765)
+- Services: openclaw-gateway (18500), athena-web (9000), argus
 - Dispatch: dispatch.sh → tmux → watcher → wake-gateway.sh → cron wake
-- Completion signals: MCP Agent Mail (rich) + watcher (guaranteed)
+- Completion signals: dispatch watcher + wake-gateway callback
 - State: state/runs/ and state/results/ (JSON)
 - Work tracking: beads (bd create/close/list)
 

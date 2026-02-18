@@ -4,7 +4,8 @@
 # Usage: dispatch.sh <bead-id> <repo-path> <agent-type> <prompt> [--branch <name>]
 #   agent-type: claude:opus | claude:sonnet | codex | codex:gpt-5.3-codex
 #
-# Agents coordinate via MCP Agent Mail. No worktrees. No per-agent branches.
+# Agents coordinate via shared run context and branch discipline.
+# No worktrees. No per-agent branches.
 # Multiple agents can work the same repo and branch simultaneously.
 set -euo pipefail
 
@@ -406,7 +407,7 @@ build_full_prompt() {
         coord_section="
 
 ## Other Active Agents (same repo)
-These agents are currently working on this repo. Coordinate via MCP Agent Mail.
+These agents are currently working on this repo. Coordinate to avoid overlap.
 $coordination
 "
     fi
@@ -416,12 +417,11 @@ $PROMPT
 $coord_section
 ## Coordination Instructions
 - You are agent for bead $BEAD_ID working on branch: $(git -C "$REPO_PATH" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
-- Use MCP Agent Mail to register yourself, check file reservations, and announce your plan
-- Before editing files, check if another agent has reserved them
-- Reserve the files you plan to edit
+- Check the active-agent list above and avoid overlapping file edits
+- Announce intended scope in your first response before making edits
 - Pull before committing: git pull --rebase
 - Commit frequently with descriptive messages referencing bead $BEAD_ID
-- When done, release your file reservations and send a completion message
+- When done, provide a clear completion summary with test results and commit SHA
 PROMPT
 }
 
