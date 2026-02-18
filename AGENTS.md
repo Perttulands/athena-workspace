@@ -1,33 +1,52 @@
-# AGENTS.md — Entry Point
+# AGENTS.md — Workspace Map
 
-## Navigation
+Use this file as a map only. Source-of-truth behavior lives in linked docs.
 
-- [SOUL.md](SOUL.md) — Identity + operating principles
-- [USER.md](USER.md) — About Perttu
-- [TOOLS.md](TOOLS.md) — Server, services, CLI tools
-- Skills: beads, verify, centurion, bug-scanner, argus, coding-agents
-- [docs/INDEX.md](docs/INDEX.md) — Full documentation index
-- [docs/standards/prd-governance.md](docs/standards/prd-governance.md) — Canonical PRD policy
+## North Star
 
-## Swarm Quick Reference
+- Canonical feature behavior lives in `docs/features/<feature>/PRD.md`.
+- Execution sequencing lives in `docs/specs/ralph/` (not in canonical PRDs).
+- Historical or deprecated docs live in `docs/archive/YYYY-MM/`.
+
+## What Is Where
+
+| Path | What belongs here |
+|---|---|
+| `SOUL.md` + `USER.md` | Identity, operating intent, and human context |
+| `TOOLS.md` | Services, CLIs, and local environment details |
+| `docs/INDEX.md` | Master documentation navigation |
+| `docs/features/<feature>/PRD.md` | One canonical PRD per active feature |
+| `docs/specs/ralph/` | Ralph-oriented execution specs and sequencing |
+| `docs/standards/prd-governance.md` | Canonical PRD structure, policy, and enforcement |
+| `docs/archive/YYYY-MM/` | Deprecated/superseded drafts, reviews, audits |
+| `scripts/` | Automation, lint guards, and orchestration tooling |
+| `memory/YYYY-MM-DD.md` | Daily memory log (file-based memory) |
+| `state/` | Generated runs, reports, and runtime logs |
+| `mythology.md` | Strategic concept and product mythology |
+
+## Daily Loop
 
 ```bash
-bd create --title "task" --priority 1                              # Create bead
-./scripts/dispatch.sh <bead> <repo> codex "prompt"                 # Dispatch (codex)
-./scripts/dispatch.sh <bead> <repo> claude:opus "prompt"           # Dispatch (opus)
-./scripts/verify.sh <repo> [bead]                                  # Quality gate
-./scripts/centurion.sh merge <branch> <repo>                       # Test-gated merge
-bd close <bead>                                                    # Close
+bd create --title "task" --priority 1
+./scripts/dispatch.sh <bead> <repo> codex "prompt"
+./scripts/verify.sh <repo> [bead]
+./scripts/centurion.sh merge <branch> <repo>
+bd close <bead>
 ```
 
-## Rules
+## Ground Rules
 
-- All coding work through `dispatch.sh`. Read `coding-agents` skill.
 - `bd` is the only bead CLI in this workspace.
-- Every active feature must have one canonical PRD at `docs/features/<feature>/PRD.md`.
-- Canonical PRDs define product behavior and UX outcomes, not implementation checklist steps.
-- Ralph execution specs live under `docs/specs/ralph/`.
-- Memory = files. Daily → `memory/YYYY-MM-DD.md`. Lessons → relevant doc.
-- `trash` > `rm`. Ask before destructive commands.
-- Docs describe what IS. No past tense.
-- Never poll. Batch. Delegate monitoring when >2 agents active.
+- One canonical PRD per active feature: `docs/features/<feature>/PRD.md`.
+- Canonical PRDs are product behavior docs, not execution checklists.
+- Ralph execution checklists stay in `docs/specs/ralph/`.
+- Prefer `trash` over `rm` for local cleanup.
+- Never use forced git rewrites (`git push --force*`) as a retry pattern.
+- Use force-push only for explicit recovery with snapshot + clear intent.
+
+## Cleanup Plan Status
+
+1. Canonical PRD governance and linting (`scripts/prd-lint.sh`) is in place.
+2. Workspace cutover from hidden path to `/home/perttu/athena` is complete.
+3. Hidden-path lint guard is active (`scripts/lint-no-hidden-workspace.sh`).
+4. Compatibility symlink soak is temporary; remove after final old-path sweep.
