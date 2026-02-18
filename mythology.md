@@ -1,5 +1,8 @@
 # The Mythology of Athena's Agora
 
+![The Pantheon](docs/pantheon.jpg)
+
+
 _Ancient history meets digital modernity. Marble and circuits. Warriors who keep ledgers._
 
 ---

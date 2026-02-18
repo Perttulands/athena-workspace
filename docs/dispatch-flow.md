@@ -1,5 +1,8 @@
 # Dispatch Flow
 
+![Dispatch Flow](dispatch-flow.jpg)
+
+
 End-to-end lifecycle of how `dispatch.sh` launches agents and tracks execution.
 
 ## Architecture
