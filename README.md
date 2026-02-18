@@ -30,8 +30,8 @@ Read the full [mythology](mythology.md) for the story behind each name.
 
 ```bash
 # Clone
-git clone https://github.com/Perttulands/athena-workspace.git ~/.openclaw/workspace
-cd ~/.openclaw/workspace
+git clone https://github.com/Perttulands/athena-workspace.git ~/athena
+cd ~/athena
 
 # Setup (interactive — prompts for hostname, user, etc.)
 ./setup.sh

@@ -496,7 +496,7 @@ WantedBy=default.target
 # ~/.config/systemd/user/relay-wake.service
 [Service]
 Type=oneshot
-ExecStart=$HOME/.openclaw/workspace/scripts/wake-gateway.sh "relay wake trigger"
+ExecStart=$HOME/athena/scripts/wake-gateway.sh "relay wake trigger"
 ```
 
 ### 5.3 Agent Prompt Context (Minimal)

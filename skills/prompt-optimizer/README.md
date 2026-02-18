@@ -324,7 +324,7 @@ state/
 #!/usr/bin/env bash
 # weekly-optimization.sh
 
-WORKSPACE="$HOME/.openclaw/workspace"
+WORKSPACE="$HOME/athena"
 cd "$WORKSPACE"
 
 # Generate report

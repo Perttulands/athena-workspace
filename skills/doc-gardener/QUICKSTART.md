@@ -67,7 +67,7 @@ After running an audit:
 ### Daily Check (Alias)
 ```bash
 # Add to ~/.bashrc
-alias doc-check='~/.openclaw/workspace/skills/doc-gardener/doc-gardener.sh --workspace'
+alias doc-check='~/athena/skills/doc-gardener/doc-gardener.sh --workspace'
 ```
 
 ### Pre-Commit Hook

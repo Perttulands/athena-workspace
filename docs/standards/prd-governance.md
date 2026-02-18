@@ -55,7 +55,7 @@ Run weekly:
 Recommended cron:
 
 ```cron
-30 5 * * 1 /home/perttu/.openclaw/workspace/scripts/doc-governance-weekly.sh >> /home/perttu/.openclaw/logs/doc-governance-weekly.log 2>&1
+30 5 * * 1 /home/perttu/athena/scripts/doc-governance-weekly.sh >> /home/perttu/athena/state/logs/doc-governance-weekly.log 2>&1
 ```
 
 If drift exists, the weekly script writes reports to `state/results/` and creates a `bd` bead.

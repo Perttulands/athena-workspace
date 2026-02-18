@@ -402,13 +402,13 @@ fi
 
 ```cron
 # Template scoring — every hour
-0 * * * * $HOME/.openclaw/workspace/scripts/score-templates.sh
+0 * * * * $HOME/athena/scripts/score-templates.sh
 
 # Prompt refinement check — daily at 03:00 UTC
-0 3 * * * $HOME/.openclaw/workspace/scripts/refine-prompts.sh --auto
+0 3 * * * $HOME/athena/scripts/refine-prompts.sh --auto
 
 # Strategy report — weekly Sunday 00:00 UTC
-0 0 * * 0 $HOME/.openclaw/workspace/scripts/weekly-strategy.sh
+0 0 * * 0 $HOME/athena/scripts/weekly-strategy.sh
 ```
 
 ### 5.3 Wake-Gateway Notifications

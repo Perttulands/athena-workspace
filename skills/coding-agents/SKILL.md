@@ -14,7 +14,7 @@ All coding work goes through the swarm system. One command dispatches an agent w
 ## Dispatch
 
 ```bash
-cd ~/.openclaw/workspace
+cd ~/athena
 bd create --title "Description of work" --priority 1
 # → outputs bead ID like bd-32d
 

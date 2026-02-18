@@ -48,7 +48,7 @@ Each document is scored (0-10) across five dimensions:
 ╚══════════════════════════════════════════════════════════════╝
 
 Audit ID: da-20260213-143022-workspace
-Target: $HOME/.openclaw/workspace
+Target: $HOME/athena
 Date: 2026-02-13T14:30:22Z
 Documents Reviewed: 23
 

@@ -84,6 +84,9 @@ mkdir -p "$RUNS_DIR" "$RESULTS_DIR" "$WATCH_DIR" "$TRUTHSAYER_LOG_DIR"
 require_cmd jq
 require_cmd tmux
 require_cmd sha256sum
+if [[ -x "$SCRIPT_DIR/lint-no-hidden-workspace.sh" ]]; then
+    "$SCRIPT_DIR/lint-no-hidden-workspace.sh"
+fi
 
 # Disk space check — abort early if disk is nearly full
 check_disk_space "$WORKSPACE_ROOT" 200 || {

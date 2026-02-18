@@ -3,10 +3,14 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../../scripts/lib/paths.sh
+source "$SCRIPT_DIR/../../scripts/lib/paths.sh"
+
 if [[ -v WORKSPACE ]]; then
   WORKSPACE="${WORKSPACE:?WORKSPACE cannot be empty}"
 else
-  WORKSPACE="$HOME/.openclaw/workspace"
+  WORKSPACE="$ATHENA_WORKSPACE"
 fi
 RUNS_DIR="$WORKSPACE/state/runs"
 TEMPLATES_DIR="$WORKSPACE/templates"
@@ -86,7 +90,6 @@ if [[ ! -d "$TEMPLATES_DIR" ]]; then
 fi
 
 # Source pattern analyzer
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/analyze-patterns.sh"
 
 # Main analysis

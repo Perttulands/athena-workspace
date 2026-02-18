@@ -44,12 +44,12 @@
 
 ## Key Paths
 
-- Workspace: ~/.openclaw/workspace/
-- Scripts: ~/.openclaw/workspace/scripts/
-- Templates: ~/.openclaw/workspace/templates/
-- State: ~/.openclaw/workspace/state/
-- Run records: ~/.openclaw/workspace/state/runs/
-- Results: ~/.openclaw/workspace/state/results/
+- Workspace: ~/athena/
+- Scripts: ~/athena/scripts/
+- Templates: ~/athena/templates/
+- State: ~/athena/state/
+- Run records: ~/athena/state/runs/
+- Results: ~/athena/state/results/
 - OpenClaw config: ~/.openclaw/openclaw.json
 - Agent mail: ~/mcp_agent_mail/
 - Argus: ~/argus/

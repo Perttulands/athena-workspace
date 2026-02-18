@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # setup.sh — Bootstrap the Athena workspace on a fresh VPS
-# Run this after cloning the repo into ~/.openclaw/workspace/
+# Run this after cloning the repo into ~/athena/
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

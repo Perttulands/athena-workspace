@@ -20,6 +20,9 @@ if [[ ! -d "$REPO_PATH" ]]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -x "$SCRIPT_DIR/lint-no-hidden-workspace.sh" ]]; then
+    "$SCRIPT_DIR/lint-no-hidden-workspace.sh" >/dev/null
+fi
 
 # Initialize result object
 LINT_RESULT="skipped"
