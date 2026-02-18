@@ -12,11 +12,11 @@ Layer 4: Templates       — Structured prompts, consistent quality
 Layer 3: Hooks           — Post-completion verification (lint, test, scan)
 Layer 2: Structured State — JSON run records, tracking
 Layer 1: Scripts         — dispatch.sh, verify.sh enforce process
-Layer 0: Tools           — br, tmux, claude, codex (installed)
+Layer 0: Tools           — bd, tmux, claude, codex (installed)
 ```
 
 ### Layer 0: Tools
-- **beads_rust (br)**: Task management CLI
+- **beads (bd)**: Task management CLI
 - **tmux**: Session management for parallel agents
 - **claude**: Claude Code agent
 - **codex**: OpenAI Codex agent (if configured)

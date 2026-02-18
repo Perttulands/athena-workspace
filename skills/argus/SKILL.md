@@ -18,7 +18,7 @@ Independent ops watchdog (systemd service, 5-min loop). Uses Claude Haiku for re
 
 1. restart_service (openclaw-gateway or mcp-agent-mail)
 2. kill_pid (node/claude/codex processes only)
-3. create_problem_bead (via `br`)
+3. create_problem_bead (via `bd`)
 4. send_alert (Telegram)
 5. log_observation (state file)
 

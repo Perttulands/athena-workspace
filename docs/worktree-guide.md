@@ -28,8 +28,8 @@ dispatch.sh automatically injects coordination context into agent prompts when o
 
 ```bash
 # Create beads
-br create --title "Add feature A" --priority 1   # → bd-abc
-br create --title "Add feature B" --priority 1   # → bd-def
+bd create --title "Add feature A" --priority 1   # → bd-abc
+bd create --title "Add feature B" --priority 1   # → bd-def
 
 # Dispatch both on same branch
 ./scripts/dispatch.sh bd-abc /path/repo claude:sonnet "prompt A" --branch feature-x

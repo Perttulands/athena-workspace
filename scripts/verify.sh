@@ -26,7 +26,9 @@ LINT_RESULT="skipped"
 TESTS_RESULT="skipped"
 UBS_RESULT="skipped"
 TRUTHSAYER_RESULT="skipped"
+PRD_GOVERNANCE_RESULT="skipped"
 LINT_DETAILS="null"
+PRD_GOVERNANCE_DETAILS="null"
 TRUTHSAYER_ERRORS=0
 TRUTHSAYER_WARNINGS=0
 OVERALL="pass"
@@ -35,6 +37,21 @@ OVERALL="pass"
 TEST_LOG="/tmp/verify-tests-$$.log"
 cleanup() { rm -f "$TEST_LOG"; }
 trap cleanup EXIT
+
+# ── Check 0: PRD governance ─────────────────────────────────────────────────
+
+if [[ -x "$SCRIPT_DIR/prd-lint.sh" ]]; then
+    PRD_OUTPUT=""
+    if PRD_OUTPUT="$("$SCRIPT_DIR/prd-lint.sh" --json 2>/dev/null)"; then
+        PRD_GOVERNANCE_RESULT="pass"
+    else
+        PRD_GOVERNANCE_RESULT="fail"
+        OVERALL="fail"
+        if [[ -n "$PRD_OUTPUT" ]]; then
+            PRD_GOVERNANCE_DETAILS="$(printf '%s' "$PRD_OUTPUT" | jq '.summary // null' 2>/dev/null || echo "null")"
+        fi
+    fi
+fi
 
 # ── Check 1: Lint changed files ──────────────────────────────────────────────
 
@@ -198,9 +215,11 @@ JSON_OUTPUT=$(jq -n \
     --arg tests "$TESTS_RESULT" \
     --arg ubs "$UBS_RESULT" \
     --arg truthsayer "$TRUTHSAYER_RESULT" \
+    --arg prd_governance "$PRD_GOVERNANCE_RESULT" \
     --argjson ts_errors "$TRUTHSAYER_ERRORS" \
     --argjson ts_warnings "$TRUTHSAYER_WARNINGS" \
     --argjson lint_details "$LINT_DETAILS" \
+    --argjson prd_governance_details "$PRD_GOVERNANCE_DETAILS" \
     --arg overall "$OVERALL" \
     '{
         repo: $repo,
@@ -210,9 +229,11 @@ JSON_OUTPUT=$(jq -n \
             tests: $tests,
             ubs: $ubs,
             truthsayer: $truthsayer,
+            prd_governance: $prd_governance,
             truthsayer_errors: $ts_errors,
             truthsayer_warnings: $ts_warnings,
-            lint_details: $lint_details
+            lint_details: $lint_details,
+            prd_governance_details: $prd_governance_details
         },
         overall: $overall
     }')

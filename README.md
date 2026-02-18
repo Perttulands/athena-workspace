@@ -66,6 +66,8 @@ Human → Athena (coordinator) → dispatch.sh → tmux session → coding agent
 | `templates/` | Agent prompt templates (feature, bug-fix, refactor, etc.) |
 | `skills/` | Modular skill definitions |
 | `docs/` | Architecture docs, guides |
+| `docs/features/` | Canonical source-of-truth feature PRDs (`<feature>/PRD.md`) |
+| `docs/archive/` | Historical drafts, reviews, and audits |
 | `tests/` | E2E and unit tests |
 | `config/` | Agent configuration (generated from examples) |
 | `mythology.md` | The full lore — every tool's mythological origin |
@@ -84,6 +86,7 @@ These are gitignored and stay local:
 | File | Purpose |
 |------|---------|
 | `AGENTS.md` | Entry point — swarm quick reference, rules |
+| `docs/standards/prd-governance.md` | PRD governance and `bd` policy |
 | `SOUL.md` | Operating principles — who Athena is at her core |
 | `IDENTITY.md` | Identity — the owl, the mythology, the vibe |
 | `mythology.md` | The full story of every tool and why it's named that |

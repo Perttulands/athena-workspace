@@ -10,6 +10,8 @@ Located in `templates/`:
 - **refactor.md**: Improve code structure without changing behavior
 - **docs.md**: Write or update documentation
 - **script.md**: Create standalone executable script
+- **code-review.md**: Structured code review and risk finding prompt
+- **refine.md**: Prompt and approach refinement tasks
 - **custom.md**: Freeform task with custom description
 
 ## Template Selection
@@ -68,6 +70,8 @@ Templates use `{{VARIABLE}}` syntax for substitution.
 - Refactor: `{{GOAL}}`, `{{SCOPE}}`
 - Docs: `{{TOPIC}}`
 - Script: `{{SCRIPT_PURPOSE}}`, `{{OUTPUT_PATH}}`
+- Code-review: `{{REVIEW_SCOPE}}`, `{{RISK_FOCUS}}`
+- Refine: `{{BASE_PROMPT}}`, `{{IMPROVEMENT_GOAL}}`
 - Custom: `{{DESCRIPTION}}`
 
 ## Usage

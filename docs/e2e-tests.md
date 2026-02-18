@@ -20,7 +20,7 @@ tests/
 ├── e2e/                           Bash integration tests
 │   ├── helpers.sh                 Assertions + utilities
 │   ├── test-argus.sh              Argus health checks
-│   ├── test-beads-lifecycle.sh    br create → show → close
+│   ├── test-beads-lifecycle.sh    bd create → show → close
 │   ├── test-dispatch.sh           Full dispatch pipeline (E2E_RESULT markers)
 │   ├── test-dispatch-lifecycle.sh Full dispatch with isolated socket
 │   ├── test-services.sh           Service health (gateway, agent mail, athena-web)
@@ -36,7 +36,7 @@ tests/
 
 | Test | What it verifies | Duration |
 |------|-----------------|----------|
-| `test-beads-lifecycle.sh` | `br` create → show → close → delete | ~1s |
+| `test-beads-lifecycle.sh` | `bd` create → show → close → delete | ~1s |
 | `test-wake-gateway.sh` | Wake signal sends, returns JSON | ~2s |
 | `test-truthsayer-scan.sh` | Truthsayer scan produces valid JSON | ~5s |
 | `test-workspace.sh` | Core files exist (AGENTS.md, etc.) | ~1s |

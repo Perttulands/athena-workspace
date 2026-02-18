@@ -426,6 +426,16 @@ PROMPT
 
 # Preflight
 [[ -x "$WORKSPACE_ROOT/scripts/agent-preflight.sh" ]] && "$WORKSPACE_ROOT/scripts/agent-preflight.sh" "$AGENT_TYPE" "$REPO_PATH"
+if [[ "${DISPATCH_ENFORCE_PRD_LINT:-true}" == "true" ]] && [[ -x "$WORKSPACE_ROOT/scripts/prd-lint.sh" ]]; then
+    prd_lint_report="$(mktemp)"
+    if ! "$WORKSPACE_ROOT/scripts/prd-lint.sh" > "$prd_lint_report"; then
+        echo "Error: PRD governance check failed. Dispatch blocked." >&2
+        cat "$prd_lint_report" >&2
+        rm -f "$prd_lint_report"
+        exit 1
+    fi
+    rm -f "$prd_lint_report"
+fi
 
 # Branch management
 if [[ -n "$BRANCH" ]] && git -C "$REPO_PATH" rev-parse --git-dir &>/dev/null; then

@@ -1,65 +1,69 @@
 # Documentation Index
 
-This is Athena's operating manual. Start with AGENTS.md, then dig deeper here as needed.
+Start with `AGENTS.md`, then use this index for deeper docs.
 
 ## Core Operating System
 
-- **[operating-principles.md](operating-principles.md)** — Core rules for safety, external actions, and group behavior
-- **[memory-system.md](memory-system.md)** — How memory works: daily files, MEMORY.md, when to write
-- **[communication.md](communication.md)** — Group chat etiquette, reactions, when to speak/stay silent
-- **[heartbeat-guide.md](heartbeat-guide.md)** — Proactive work during heartbeats, what to check, tracking state
-- **[context-discipline.md](context-discipline.md)** — How to protect your context window from waste
+- **[operating-principles.md](operating-principles.md)** - Core rules for safety and external actions
+- **[memory-system.md](memory-system.md)** - Daily memory files and retention model
+- **[communication.md](communication.md)** - Coordination etiquette and messaging behavior
+- **[heartbeat-guide.md](heartbeat-guide.md)** - Proactive heartbeat workflows
+- **[context-discipline.md](context-discipline.md)** - Context window hygiene
+
+## Active Feature PRDs
+
+- **[features/README.md](features/README.md)** - Canonical feature PRD layout
+- **[features/swarm-vision/PRD.md](features/swarm-vision/PRD.md)** - Autonomous coding factory PRD
+- **[features/centurion/PRD.md](features/centurion/PRD.md)** - Merge gate and branch control PRD
+- **[features/relay-agent-comms/PRD.md](features/relay-agent-comms/PRD.md)** - Agent communication PRD
+- **[features/learning-loop/PRD.md](features/learning-loop/PRD.md)** - Learning flywheel PRD
 
 ## Swarm Infrastructure
 
-These docs describe the autonomous coding factory implementation:
+| Document | Purpose | Audience |
+|----------|---------|----------|
+| [architecture.md](architecture.md) | System layers, boundaries, dependencies | All agents |
+| [architecture-rules.md](architecture-rules.md) | Enforced invariants and lint rules | All agents |
+| [beads-integration.md](beads-integration.md) | How components create/use beads | All agents |
+| [dispatch-flow.md](dispatch-flow.md) | `dispatch.sh` end-to-end behavior | Athena, debugging |
+| [templates-guide.md](templates-guide.md) | Prompt template usage and maintenance | Athena |
+| [state-schema.md](state-schema.md) | Run/result schema and validation | Scripts, analysis |
+| [flywheel.md](flywheel.md) | Analysis loop and improvement method | Analysis agents |
+| [worktree-guide.md](worktree-guide.md) | Shared-directory coordination model | Orchestrator, dispatch |
+| [calibration-guide.md](calibration-guide.md) | Human accept/reject calibration system | Orchestrator |
+| [planning-guide.md](planning-guide.md) | Goal decomposition and sequencing | Orchestrator |
+| [orchestrator-guide.md](orchestrator-guide.md) | Overnight autonomous operation guardrails | Ops |
 
-| Document | Purpose | Key audience |
-|----------|---------|-------------|
-| [architecture.md](architecture.md) | System layers, dependency direction, component boundaries | All agents |
-| [architecture-rules.md](architecture-rules.md) | Mechanically enforced invariants, linter rules | All agents |
-| [beads-integration.md](beads-integration.md) | How each component integrates with beads | All agents |
-| [dispatch-flow.md](dispatch-flow.md) | How dispatch.sh works end-to-end | Athena, debugging |
-| [templates-guide.md](templates-guide.md) | How to use/create prompt templates | Athena |
-| [state-schema.md](state-schema.md) | Run/result record formats, validation | Scripts, analysis |
-| [flywheel.md](flywheel.md) | Analysis methodology, improvement loop | Analysis agents |
-| [worktree-guide.md](worktree-guide.md) | Agent coordination via shared directory and MCP Agent Mail | Orchestrator, dispatch |
-| [calibration-guide.md](calibration-guide.md) | Accept/reject learning system, judgment patterns | Orchestrator, analysis |
-| [planning-guide.md](planning-guide.md) | Goal decomposition, task sequencing, dependency planning | Orchestrator, Athena |
-| [orchestrator-guide.md](orchestrator-guide.md) | Overnight autonomous operation, safety guardrails, decision logging | Orchestrator, ops |
+## Standards
 
-### Doc Gardening
+- **[standards/prd-governance.md](standards/prd-governance.md)** - `bd` policy, canonical PRD rules, enforcement
 
-The doc gardening process detects drift between documentation and actual code:
+## Execution Specs
 
-- Run `scripts/doc-gardener.sh` to scan for stale references, broken links, schema drift, and template drift
-- Use `--json` for machine-readable output
-- Use `--fix` to see remediation instructions for each issue
-- Gardening should run periodically (weekly or after major changes) to keep docs accurate
+- **[specs/README.md](specs/README.md)** - What execution specs are and how they differ from PRDs
+- **[specs/ralph/README.md](specs/ralph/README.md)** - Ralph-oriented execution spec directory
+
+## Doc Operations
+
+- Run `scripts/doc-gardener.sh` for link/reference/schema/template drift
+- Run `scripts/prd-lint.sh` for canonical PRD governance checks
+- Run `scripts/doc-governance-weekly.sh` for weekly combined sweep + report/bead creation
 
 ## Testing
 
-- **[e2e-tests.md](e2e-tests.md)** — E2E test suite (4 bash tests + runner in `tests/e2e/`)
+- **[e2e-tests.md](e2e-tests.md)** - End-to-end suite in `tests/e2e/`
 
-## Changelogs
+## Archive
 
-| Component | Changelog |
-|-----------|-----------|
-| Workspace (swarm infra) | [CHANGELOG.md](../CHANGELOG.md) |
-| Truthsayer | `$HOME/truthsayer/CHANGELOG.md` |
-| Ludus Magnus | `$HOME/ludus-magnus/CHANGELOG.md` |
-| Oathkeeper | `$HOME/oathkeeper/CHANGELOG.md` |
-| Athena Web | `$HOME/athena-web/CHANGELOG.md` |
-| Argus | `$HOME/argus/CHANGELOG.md` |
-| VPS Setup | `$HOME/vps-setup/CHANGELOG.md` |
+- Historical PRDs, reviews, and audits are in `docs/archive/`
 
 ## Philosophy & Identity
 
-- [VISION.md](../VISION.md) — Why this system exists
-- [SOUL.md](../SOUL.md) — Who you are
-- [USER.md](../USER.md) — Who you're helping
+- [README.md](../README.md) - System overview
+- [mythology.md](../mythology.md) - Mythology and visual identity source of truth
+- [SOUL.md](../SOUL.md) - Core identity
+- [USER.md](../USER.md) - Human context
 
 ## Tools & Configuration
 
-- [TOOLS.md](../TOOLS.md) — Local tool configuration, paths, services
-- Skills — check each skill's `SKILL.md` for usage
+- [TOOLS.md](../TOOLS.md) - Local services, CLI tools, paths

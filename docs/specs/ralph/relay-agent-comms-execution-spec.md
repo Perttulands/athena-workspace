@@ -1,4 +1,17 @@
-# PRD: Relay — Agent-to-Agent Communication
+---
+feature_slug: relay-agent-comms
+primary_bead: bd-tbd
+status: draft
+owner: athena
+scope_paths:
+  - scripts/dispatch.sh
+  - scripts/lib/config.sh
+  - config/agents.json
+  - scripts/wake-gateway.sh
+last_updated: 2026-02-18
+source_of_truth: false
+---
+# Execution Spec: Relay — Agent-to-Agent Communication
 
 > Status: Draft  
 > Author: Athena (systems architect)  

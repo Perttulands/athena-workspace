@@ -8,7 +8,9 @@ Format and validation for run and result records in `state/`.
 state/
 ├── schemas/
 │   ├── run.schema.json     # JSON Schema for run records
-│   └── result.schema.json  # JSON Schema for result records
+│   ├── result.schema.json  # JSON Schema for result records
+│   ├── calibration.schema.json  # Calibration decision records
+│   └── plan.schema.json    # Planning records
 ├── runs/
 │   └── <bead-id>.json      # One run record per dispatch
 └── results/
@@ -63,6 +65,11 @@ Created at completion. Tracks outcome of task execution.
 - `reason`: Human-readable completion description
 
 **Schema**: `state/schemas/result.schema.json`
+
+## Additional Schemas
+
+- `state/schemas/calibration.schema.json`: Validation for human accept/reject calibration records.
+- `state/schemas/plan.schema.json`: Validation for generated planning records.
 
 ## Status Values
 

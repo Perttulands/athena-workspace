@@ -102,11 +102,11 @@ Agents share one directory — no worktrees, no per-agent branches.
 
 ## Bead Lifecycle in Dispatch
 
-1. Bead created via `br create` (before dispatch)
+1. Bead created via `bd create` (before dispatch)
 2. `dispatch.sh` launches agent, creates run/result records linked to bead
 3. Agent works the task
 4. `verify.sh` validates the result, writes to `state/results/<bead-id>-verify.json`
-5. Bead closed via `br close` after verification
+5. Bead closed via `bd close` after verification
 
 ## Data Written
 

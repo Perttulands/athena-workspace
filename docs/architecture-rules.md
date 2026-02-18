@@ -12,7 +12,7 @@ Layer 4: Templates       — structured prompts
 Layer 3: Hooks           — verification scripts
 Layer 2: State           — JSON records, schemas
 Layer 1: Scripts         — dispatch, coordination
-Layer 0: Tools           — external binaries (br, tmux, claude)
+Layer 0: Tools           — external binaries (bd, tmux, claude)
 ```
 
 ## Invariants
@@ -29,8 +29,8 @@ Layer 0: Tools           — external binaries (br, tmux, claude)
 - Flywheel scripts can read everything
 
 **Invalid:**
-- `scripts/validate.sh` cannot source `templates/helpers.sh` (scripts → templates)
-- `templates/feature.md` cannot source `scripts/common.sh` (templates → scripts)
+- `scripts/validate-state.sh` cannot source `templates/helpers.sh` (scripts → templates)
+- `templates/feature.md` cannot source `scripts/lib/common.sh` (templates → scripts)
 
 **Fix:** Move shared logic to a lower layer (state/ or docs/) or use a callback pattern to invert the dependency.
 

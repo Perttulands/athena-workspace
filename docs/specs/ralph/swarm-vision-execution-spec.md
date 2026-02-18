@@ -1,4 +1,17 @@
-# PRD: Autonomous Agentic Coding Factory
+---
+feature_slug: swarm-vision
+primary_bead: bd-11t
+status: active
+owner: athena
+scope_paths:
+  - scripts/dispatch.sh
+  - scripts/verify.sh
+  - scripts/orchestrator.sh
+  - docs/
+last_updated: 2026-02-18
+source_of_truth: false
+---
+# Execution Spec: Autonomous Agentic Coding Factory
 
 **Project**: swarm_vision
 **Progress file**: `progress_swarm_vision.txt`

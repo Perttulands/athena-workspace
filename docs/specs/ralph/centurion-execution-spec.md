@@ -1,4 +1,17 @@
-# PRD: Centurion Merge Agent
+---
+feature_slug: centurion
+primary_bead: bd-601
+status: active
+owner: athena
+scope_paths:
+  - scripts/centurion.sh
+  - scripts/dispatch.sh
+  - scripts/worktree-manager.sh
+  - tests/unit/
+last_updated: 2026-02-18
+source_of_truth: false
+---
+# Execution Spec: Centurion Merge Agent
 
 ## Introduction
 
