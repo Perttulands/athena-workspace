@@ -1,5 +1,8 @@
 # 🏛️ Athena's Agora
 
+![Athena's Agora](banner.jpg)
+
+
 _An autonomous coding system with an unreasonable commitment to naming things after Greek mythology._
 
 ---
