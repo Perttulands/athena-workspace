@@ -180,9 +180,18 @@ wake_athena() {
         n="$(count_truthsayer_findings "$ts_log")"
         (( n > 0 )) && ts_msg=", truthsayer: ${n} issues"
     fi
+    local msg="Agent $BEAD_ID $status (${duration}s, $AGENT_TYPE/$MODEL, attempt $ATTEMPT/$MAX_RETRIES, reason: $reason${ts_msg}). Check state/results/$BEAD_ID.json and message Perttu with the result summary."
+    
+    # Send via Relay if available
+    local relay_bin="$HOME/go/bin/relay"
+    if [[ -x "$relay_bin" ]]; then
+        "$relay_bin" send -url http://localhost:9292 athena "$msg" 2>/dev/null || true
+    fi
+    
+    # Wake gateway
     local script="$SCRIPT_DIR/wake-gateway.sh"
     if [[ -x "$script" ]]; then
-        "$script" "Agent $BEAD_ID $status (${duration}s, $AGENT_TYPE/$MODEL, attempt $ATTEMPT/$MAX_RETRIES, reason: $reason${ts_msg}). Check state/results/$BEAD_ID.json and message Perttu with the result summary." || true
+        "$script" "$msg" || true
     fi
 }
 
