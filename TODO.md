@@ -24,10 +24,12 @@ _Last updated: 2026-02-19 23:03 EET_
 ## Next
 
 ### Relay Backbone
-- [ ] Read Relay docs and CLI
+- [x] Read Relay docs and CLI
+- [x] Relay server running on :9292
+- [x] dispatch.sh sends completion messages via Relay (in addition to wake-gateway)
+- [ ] Systemd service for Relay (needs sudo: ~/athena/services/relay.service)
 - [ ] Design message schema for dispatch (what replaces dispatch.sh)
 - [ ] Prototype: Athena sends dispatch message via Relay
-- [ ] Prototype: Agent completion triggers Relay message back
 - [ ] Migrate one dispatch flow end-to-end
 - [ ] Document the new flow
 
