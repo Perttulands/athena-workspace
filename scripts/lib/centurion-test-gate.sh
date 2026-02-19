@@ -41,9 +41,27 @@ run_test_gate() {
     output_file="$(mktemp)"
 
     if (cd "$repo_path" && timeout "$timeout_seconds" "${test_cmd[@]}") >"$output_file" 2>&1; then
-        TEST_GATE_LAST_OUTPUT=""
         rm -f "$output_file"
         echo "Test gate passed: $runner_label"
+        
+        # Run truthsayer scan if available
+        if command -v truthsayer >/dev/null 2>&1 || [[ -x "$HOME/go/bin/truthsayer" ]]; then
+            local ts_bin="${TRUTHSAYER_BIN:-${HOME}/go/bin/truthsayer}"
+            [[ -x "$ts_bin" ]] || ts_bin="truthsayer"
+            
+            local ts_output
+            ts_output="$("$ts_bin" scan "$repo_path" --severity error 2>&1)" || {
+                local ts_exit=$?
+                TEST_GATE_LAST_OUTPUT="Truthsayer scan failed:
+$ts_output"
+                echo "Truthsayer gate failed (exit $ts_exit)" >&2
+                echo "$ts_output" >&2
+                return 1
+            }
+            echo "Truthsayer gate passed"
+        fi
+        
+        TEST_GATE_LAST_OUTPUT=""
         return 0
     else
         local exit_code=$?
