@@ -37,11 +37,11 @@ _Last updated: 2026-02-19 23:03 EET_
 - [x] Write Senate PRD (purpose, scope, process) — docs/features/senate/PRD.md
 - [x] Design deliberation protocol (how agents argue, how verdicts work)
 - [x] Define case types (rule evolution, architecture, disputes, priorities)
-- [ ] Create senate/ repo structure
+- [x] Implement deliberation prototype — scripts/senate-deliberate.sh
+- [x] Run first case: Truthsayer rule amendment → VERDICT: AMEND (narrow scope + annotation)
+- [ ] Create senate/ repo structure (separate repo)
 - [ ] Implement case filing via Relay
-- [ ] Implement deliberation spawner (multiple agents with different prompts)
-- [ ] Implement verdict synthesis
-- [ ] Run first case: a Truthsayer rule amendment (silent-fallback false positives)
+- [ ] Migrate to sessions_spawn (currently uses claude CLI)
 
 ## Blocked / Waiting
 
@@ -54,6 +54,11 @@ _(Nothing currently blocked)_
 - [x] Overnight work cron (23:00, 02:00, 05:00)
 - [x] Verified bd and truthsayer working
 - [x] system-architecture.md and JUDGMENT.md migrated (Mercury)
+- [x] Oathkeeper config + cron job (06:30)
+- [x] Learning Loop verified (35% pass rate) + cron job (07:00)
+- [x] Relay server running (:9292) + dispatch.sh integration
+- [x] Senate PRD written
+- [x] Senate prototype working — first verdict rendered
 
 ## Notes
 
