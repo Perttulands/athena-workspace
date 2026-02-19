@@ -1,3 +1,10 @@
+---
+feature: argus
+last_updated: 2026-02-19
+status: active
+owner: athena
+---
+
 # Argus — PRD
 
 _Last updated: 2026-02-19_

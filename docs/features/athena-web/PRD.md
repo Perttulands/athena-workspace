@@ -1,3 +1,10 @@
+---
+feature: athena-web
+last_updated: 2026-02-19
+status: active
+owner: athena
+---
+
 # Athena Web (The Loom Room) — PRD
 
 _Last updated: 2026-02-19_

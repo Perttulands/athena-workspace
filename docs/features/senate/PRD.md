@@ -1,3 +1,10 @@
+---
+feature: senate
+last_updated: 2026-02-19
+status: active
+owner: athena
+---
+
 # Senate (Ecclesia) — PRD
 
 _Last updated: 2026-02-19_
