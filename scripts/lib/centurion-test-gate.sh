@@ -2,6 +2,113 @@
 # centurion-test-gate.sh — Shared test gate runner for centurion scripts
 # Source this file; do not execute directly.
 
+LINT_GATE_LAST_OUTPUT=""
+
+run_lint_gate() {
+    local repo_path="$1"
+    local output_file
+    local lint_cmd=""
+    local -a shell_files=()
+
+    output_file="$(mktemp)"
+    LINT_GATE_LAST_OUTPUT=""
+
+    # Go: prefer golangci-lint, fall back to go vet.
+    if [[ -f "$repo_path/go.mod" ]]; then
+        if command -v golangci-lint >/dev/null 2>&1; then
+            lint_cmd="golangci-lint run"
+            if ! (cd "$repo_path" && golangci-lint run) >"$output_file" 2>&1; then
+                LINT_GATE_LAST_OUTPUT="$(cat "$output_file")"
+                rm -f "$output_file"
+                echo "Lint gate failed: $lint_cmd" >&2
+                echo "$LINT_GATE_LAST_OUTPUT" >&2
+                return 1
+            fi
+        else
+            lint_cmd="go vet ./..."
+            if ! (cd "$repo_path" && go vet ./...) >"$output_file" 2>&1; then
+                LINT_GATE_LAST_OUTPUT="$(cat "$output_file")"
+                rm -f "$output_file"
+                echo "Lint gate failed: $lint_cmd" >&2
+                echo "$LINT_GATE_LAST_OUTPUT" >&2
+                return 1
+            fi
+        fi
+        echo "Lint gate passed: $lint_cmd"
+    fi
+
+    # JS/TS: run eslint only when the repo declares eslint in package.json.
+    if [[ -f "$repo_path/package.json" ]]; then
+        local has_eslint=1
+        if command -v jq >/dev/null 2>&1; then
+            jq -e \
+                '.dependencies.eslint != null
+                 or .devDependencies.eslint != null
+                 or .scripts.eslint != null
+                 or ((.scripts.lint // "") | contains("eslint"))' \
+                "$repo_path/package.json" >/dev/null || has_eslint=0
+        else
+            rg -q '"eslint"' "$repo_path/package.json" || has_eslint=0
+        fi
+
+        if [[ "$has_eslint" -eq 1 ]]; then
+            lint_cmd="eslint ."
+            if [[ -x "$repo_path/node_modules/.bin/eslint" ]]; then
+                if ! (cd "$repo_path" && ./node_modules/.bin/eslint .) >"$output_file" 2>&1; then
+                    LINT_GATE_LAST_OUTPUT="$(cat "$output_file")"
+                    rm -f "$output_file"
+                    echo "Lint gate failed: $lint_cmd" >&2
+                    echo "$LINT_GATE_LAST_OUTPUT" >&2
+                    return 1
+                fi
+            else
+                if ! command -v npx >/dev/null 2>&1; then
+                    LINT_GATE_LAST_OUTPUT="eslint is configured in package.json but npx is not available"
+                    rm -f "$output_file"
+                    echo "Lint gate failed: $lint_cmd" >&2
+                    echo "$LINT_GATE_LAST_OUTPUT" >&2
+                    return 1
+                fi
+                if ! (cd "$repo_path" && npx --no-install eslint .) >"$output_file" 2>&1; then
+                    LINT_GATE_LAST_OUTPUT="$(cat "$output_file")"
+                    rm -f "$output_file"
+                    echo "Lint gate failed: $lint_cmd" >&2
+                    echo "$LINT_GATE_LAST_OUTPUT" >&2
+                    return 1
+                fi
+            fi
+            echo "Lint gate passed: $lint_cmd"
+        fi
+    fi
+
+    # Bash: lint shell scripts with shellcheck.
+    mapfile -t shell_files < <(
+        cd "$repo_path" && find . -type f -name '*.sh' \
+            -not -path './.git/*' \
+            -not -path './node_modules/*' \
+            -not -path './vendor/*'
+    )
+    if [[ ${#shell_files[@]} -gt 0 ]]; then
+        lint_cmd="shellcheck"
+        if ! command -v shellcheck >/dev/null 2>&1; then
+            echo "Lint gate skipped: shellcheck not installed"
+            rm -f "$output_file"
+            return 0
+        fi
+        if ! (cd "$repo_path" && shellcheck "${shell_files[@]}") >"$output_file" 2>&1; then
+            LINT_GATE_LAST_OUTPUT="$(cat "$output_file")"
+            rm -f "$output_file"
+            echo "Lint gate failed: $lint_cmd" >&2
+            echo "$LINT_GATE_LAST_OUTPUT" >&2
+            return 1
+        fi
+        echo "Lint gate passed: $lint_cmd"
+    fi
+
+    rm -f "$output_file"
+    return 0
+}
+
 run_test_gate() {
     local repo_path="$1"
     local timeout_seconds=300
@@ -59,6 +166,12 @@ $ts_output"
                 return 1
             }
             echo "Truthsayer gate passed"
+        fi
+
+        if ! run_lint_gate "$repo_path"; then
+            TEST_GATE_LAST_OUTPUT="Lint checks failed:
+$LINT_GATE_LAST_OUTPUT"
+            return 1
         fi
         
         TEST_GATE_LAST_OUTPUT=""
