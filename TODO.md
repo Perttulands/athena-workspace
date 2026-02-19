@@ -5,18 +5,21 @@ _Last updated: 2026-02-19 23:03 EET_
 ## Now (This Sprint)
 
 ### Oathkeeper Wiring
-- [ ] Read Oathkeeper docs and understand CLI usage
-- [ ] Find where OpenClaw transcripts live on chrote
-- [ ] Create cron job: scan transcripts daily for unverified commitments
-- [ ] Wire output: commitments found → create beads automatically
-- [ ] Test with a real transcript
+- [x] Read Oathkeeper docs and understand CLI usage
+- [x] Find where OpenClaw transcripts live on chrote (~/.openclaw-athena/agents/main/sessions/)
+- [x] Create config at ~/.config/oathkeeper/oathkeeper.toml
+- [x] Create cron job: oathkeeper-scan runs at 06:30 daily
+- [ ] Wire output: commitments found → create beads automatically (built-in via bd)
+- [x] Test with a real transcript
+- [ ] ISSUE: Detector sensitivity too high — flags weak_commitment on non-commitments. Needs tuning.
 
 ### Learning Loop Activation
-- [ ] Read Learning Loop scripts in ~/athena/tools/learning-loop/
-- [ ] Understand feedback-collector.sh, score-templates.sh, select-template.sh
-- [ ] Set up state/runs/ with at least one real run record
-- [ ] Create cron job: process runs → update scores
-- [ ] Wire output: scores → template selection for dispatch
+- [x] Read Learning Loop scripts in ~/athena/tools/learning-loop/
+- [x] Understand feedback-collector.sh, score-templates.sh, select-template.sh
+- [x] State already exists: 116 runs, 92 feedback records processed
+- [x] Ran score-templates.sh — current pass rate: 35% (91 runs)
+- [x] Create cron job: learning-loop-daily runs at 07:00
+- [ ] Wire output: scores → template selection for dispatch (needs dispatch.sh integration check)
 
 ## Next
 
