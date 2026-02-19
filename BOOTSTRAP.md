@@ -23,18 +23,46 @@ npm --version
 
 If Go is missing: `wget -qO- https://go.dev/dl/go1.23.0.linux-amd64.tar.gz | sudo tar -C /usr/local -xz` then add `/usr/local/go/bin` to PATH.
 
+### System Setup
+
+On a VPS (especially ≤8GB RAM), add swap before anything else:
+
+```bash
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+Also ensure tmux is installed (used for agent dispatch):
+
+```bash
+sudo apt install -y tmux jq curl
+```
+
 ---
 
 ## 1. 🧵 Beads — Work Tracking
 
 **What:** Distributed, git-backed work tracker. Created by Steve Yegge.  
-**Needs:** Go
+**Needs:** Go (or download binary)
 
 ```bash
-go install github.com/steveyegge/beads/cmd/bd@latest
-bd version
+# Option A: Install from release (recommended — avoids building Dolt)
+gh release download v0.46.0 --repo steveyegge/beads --pattern '*linux*amd64*' --dir /tmp/beads
+tar xzf /tmp/beads/beads_0.46.0_linux_amd64.tar.gz -C /tmp/beads
+cp /tmp/beads/bd ~/.local/bin/bd
+chmod +x ~/.local/bin/bd
+
+# Option B: Build from source (warning: v0.48+ embeds Dolt, 171MB binary)
+go install github.com/steveyegge/beads/cmd/bd@v0.46.0
 ```
 
+**Important:** Use v0.46.0 (26MB, SQLite backend). Versions v0.48+ embed the full Dolt database engine (171MB binary, ~400MB RAM per hook invocation). On ≤8GB machines with multiple agents, this causes OOM kills.
+
+**Initialize:** Run `bd init` in the athena workspace only (centralized tracking).  
+**Note:** `bd init` auto-installs git hooks. These are fine on v0.46.0.  
 **Verify:** `bd list` should return an empty list or existing beads.  
 **Docs:** https://github.com/steveyegge/beads
 
@@ -161,7 +189,48 @@ npm install
 
 ---
 
-## 8. ⚔️ Centurion — Test-Gated Merge
+## 8. 🔄 Learning Loop — Feedback Flywheel
+
+**What:** Captures results from every agent run and feeds them back into prompt templates. The system improves by using itself.  
+**Needs:** Bash, jq
+
+```bash
+git clone https://github.com/Perttulands/learning-loop.git
+cd learning-loop
+```
+
+**Usage:**
+```bash
+# Collect feedback from a run record
+./scripts/feedback-collector.sh state/runs/<bead>.json
+
+# Score templates by pass rate
+./scripts/score-templates.sh
+
+# Select best template for a task type
+./scripts/select-template.sh feature
+```
+
+**State:** Feedback records accumulate in `state/feedback/`, scores in `state/scores/`.  
+**Docs:** https://github.com/Perttulands/learning-loop
+
+---
+
+## 9. 🏛️ Agent Agora — Landing Page
+
+**What:** The public homepage for the entire Agora system.  
+**Needs:** Nothing (static HTML/CSS/JS)
+
+```bash
+git clone https://github.com/Perttulands/agent-agora.git
+```
+
+**Deploy:** GitHub Pages, any static host, or just open `index.html`.  
+**Docs:** https://github.com/Perttulands/agent-agora
+
+---
+
+## 10. ⚔️ Centurion — Test-Gated Merge
 
 **What:** Script that runs tests before allowing merge to main.  
 **Needs:** Already included in this workspace.
@@ -175,7 +244,7 @@ npm install
 
 ---
 
-## 9. 🏛️ Athena Workspace — The Agora Itself
+## 11. 🏛️ Athena Workspace — The Agora Itself
 
 **What:** The command center. Templates, scripts, docs, and orchestration.  
 **Needs:** All of the above (or whichever subset you want)
@@ -217,10 +286,28 @@ export PATH="$HOME/go/bin:/usr/local/go/bin:$PATH"
 
 ## Install Order (Recommended)
 
-1. **Beads** — you'll use this immediately for tracking work
-2. **Truthsayer** — catches problems early
+1. **System setup** — swap, tmux, jq, curl
+2. **Beads** (v0.46.0) — work tracking from day one
 3. **Athena Workspace** — the command center
-4. **Argus** — start monitoring
-5. **Everything else** — as needed
+4. **Truthsayer** — catches problems early
+5. **Argus** — start monitoring
+6. **Centurion** — merge gates (included in workspace)
+7. **Learning Loop** — feedback after first agent runs
+8. **Relay, Oathkeeper, Ludus Magnus, Athena Web** — as needed
 
 Each component works independently. You don't need all of them to start.
+
+## Quick Verify (All Systems)
+
+After installing, run this to check everything:
+
+```bash
+bd version                              # Beads
+~/go/bin/truthsayer scan .              # Truthsayer
+~/go/bin/oathkeeper --help              # Oathkeeper
+~/go/bin/relay --help                   # Relay
+~/go/bin/ludus-magnus --help            # Ludus Magnus
+./scripts/centurion.sh status .         # Centurion
+systemctl status argus                  # Argus
+curl -s http://localhost:9000 | head -1 # Athena Web
+```
