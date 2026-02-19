@@ -34,11 +34,14 @@ _Last updated: 2026-02-19 23:03 EET_
 - [ ] Document the new flow
 
 ### Senate Design
-- [ ] Write Senate PRD (purpose, scope, process)
-- [ ] Design deliberation protocol (how agents argue, how verdicts work)
-- [ ] Define case types (rule evolution, architecture, disputes)
+- [x] Write Senate PRD (purpose, scope, process) — docs/features/senate/PRD.md
+- [x] Design deliberation protocol (how agents argue, how verdicts work)
+- [x] Define case types (rule evolution, architecture, disputes, priorities)
 - [ ] Create senate/ repo structure
-- [ ] Implement first case: a Truthsayer rule amendment
+- [ ] Implement case filing via Relay
+- [ ] Implement deliberation spawner (multiple agents with different prompts)
+- [ ] Implement verdict synthesis
+- [ ] Run first case: a Truthsayer rule amendment (silent-fallback false positives)
 
 ## Blocked / Waiting
 
