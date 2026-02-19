@@ -59,6 +59,10 @@ _(Nothing currently blocked)_
 - [x] Relay server running (:9292) + dispatch.sh integration
 - [x] Senate PRD written
 - [x] Senate prototype working — first verdict rendered
+- [x] All 9 PRDs written and reviewed (aligned with system-architecture.md)
+- [x] 8 Opus strategists spawned → 8 roadmaps produced (125 tasks)
+- [x] Overnight run pattern documented
+- [x] 8 P1/P2 beads created for immediate work
 
 ## Notes
 
