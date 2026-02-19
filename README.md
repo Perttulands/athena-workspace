@@ -21,7 +21,7 @@ Every tool in the Agora has a name, a purpose, and a mythology. They're standalo
 |------|-----------|------|
 | 👁️ [Argus](https://github.com/Perttulands/argus) | Ops watchdog — monitors health, takes corrective action | The faithful hound |
 | 🏛️ [Athena Web](https://github.com/Perttulands/athena-web) | Dashboard — see every agent, bead, and run | The portal where all threads are visible |
-| 🧵 [Beads](https://github.com/Perttulands/beads) | Work tracker — distributed, git-backed | The loom |
+| 🧵 [Beads](https://github.com/steveyegge/beads) | Work tracker — distributed, git-backed | The loom |
 | ⚔️ Centurion | Test-gated merge — nothing reaches main unverified | The centaur (in this repo) |
 | ⚖️ [Oathkeeper](https://github.com/Perttulands/oathkeeper) | Commitment tracker — if an agent promised, we check | The binding word |
 | 🔍 [Truthsayer](https://github.com/Perttulands/truthsayer) | Anti-pattern scanner — 88 rules, 5 languages | The law keeper |
@@ -102,7 +102,7 @@ After `setup.sh`:
 
 1. Write your own `USER.md`, `SOUL.md`, `IDENTITY.md`
 2. Configure agent models in `config/agents.json`
-3. Install the arsenal: [beads](https://github.com/Perttulands/beads), [truthsayer](https://github.com/Perttulands/truthsayer), [argus](https://github.com/Perttulands/argus)
+3. Install the arsenal: [beads](https://github.com/steveyegge/beads), [truthsayer](https://github.com/Perttulands/truthsayer), [argus](https://github.com/Perttulands/argus)
 4. Set up [OpenClaw](https://github.com/openclaw/openclaw) as the gateway
 
 ## License
