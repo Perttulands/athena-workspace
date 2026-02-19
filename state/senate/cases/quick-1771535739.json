@@ -1,0 +1,7 @@
+{
+  "id": "quick-1771535739",
+  "type": "quick",
+  "summary": "Should Truthsayer's silent-fallback rule be amended to exclude '|| true' in trap/cleanup contexts? Evidence: 47 false positives on intentional defensive coding in trap handlers.",
+  "evidence": [],
+  "question": "Should Truthsayer's silent-fallback rule be amended to exclude '|| true' in trap/cleanup contexts? Evidence: 47 false positives on intentional defensive coding in trap handlers."
+}
