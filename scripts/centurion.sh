@@ -23,9 +23,10 @@ TEST_GATE_LAST_OUTPUT=""
 write_result() {
     local branch="$1" status="$2" repo_path="${3:-}" detail="${4:-}"
     mkdir -p "$CENTURION_RESULTS_DIR"
-    local ts target tmp
+    local ts target tmp safe_branch
     ts="$(iso_now)"
-    target="$CENTURION_RESULTS_DIR/${branch}-centurion.json"
+    safe_branch="$(printf '%s' "$branch" | tr '/' '-')"
+    target="$CENTURION_RESULTS_DIR/${safe_branch}-centurion.json"
     tmp="$(mktemp "${target}.tmp.XXXXXX")"
     jq -cn --arg branch "$branch" --arg status "$status" --arg repo "$repo_path" \
            --arg detail "$detail" --arg ts "$ts" \
@@ -87,8 +88,8 @@ cmd_merge() {
     # Clean up lock on exit
     local _prev_branch_for_cleanup=""
     _centurion_cleanup() {
-        rm -f "$lock_file"
-        if [[ -n "$_prev_branch_for_cleanup" ]]; then
+        [[ -n "${lock_file:-}" ]] && rm -f "$lock_file"
+        if [[ -n "${_prev_branch_for_cleanup:-}" ]]; then
             git -C "$repo_path" checkout "$_prev_branch_for_cleanup" 2>/dev/null || true
         fi
     }
