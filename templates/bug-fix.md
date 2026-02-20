@@ -27,6 +27,7 @@ Fix the bug below. Verify with tests. One atomic commit.
 - Write a test that reproduces the bug before fixing it
 - Do not refactor unrelated code or add features
 - If the fix requires architectural changes, report that instead of proceeding
+- Update `CHANGELOG.md` (Keep a Changelog format) — no changelog entry, no merge
 
 ## Verify
 

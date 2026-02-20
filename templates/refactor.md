@@ -28,6 +28,7 @@ Refactor as described below. Behavior must be unchanged. All tests must pass bef
 - Pure structure change only — no features, no bug fixes
 - If the refactoring requires breaking changes, report that instead of proceeding
 - Delete unused code rather than adding compatibility shims
+- Update `CHANGELOG.md` (Keep a Changelog format) — no changelog entry, no merge
 
 ## Verify
 

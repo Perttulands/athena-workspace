@@ -4,6 +4,13 @@ All notable changes to the swarm workspace infrastructure.
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
+## [2026-02-20] — Relay Skill & Changelog Gate
+
+### Added
+- Relay skill doc (`skills/relay/SKILL.md`) covering CLI commands, global flags, agent workflow, spawn usage, data layout, and Go client.
+- Mandatory changelog constraint added to all dispatch templates (feature, bug-fix, refactor, custom, script, docs). No changelog entry = no merge.
+- Changelog requirement documented in `templates/README.md`.
+
 ## [0.5.0] - 2026-02-14
 
 ### Changed

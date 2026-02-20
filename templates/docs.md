@@ -25,6 +25,7 @@ Write or update documentation for the topic below. Docs describe what IS, never 
 - Include runnable examples where applicable
 - Do not change code — docs only
 - If code is broken or unclear, report that instead of documenting it
+- Update `CHANGELOG.md` (Keep a Changelog format) — no changelog entry, no merge
 
 ## Verify
 

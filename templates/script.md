@@ -26,6 +26,7 @@ Create an executable script at `{{OUTPUT_PATH}}` that does the following:
 - Handle errors with clear messages and non-zero exit codes
 - Self-contained — minimize external dependencies
 - Test manually before committing
+- Update `CHANGELOG.md` (Keep a Changelog format) — no changelog entry, no merge
 
 ## Verify
 

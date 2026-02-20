@@ -25,6 +25,7 @@ Implement the feature below. Add tests. All tests must pass. One atomic commit.
 - If changes span multiple subsystems, implement together in one commit
 - If the feature is too large for a single session, STOP and propose decomposition
 - Follow existing code style and patterns in the repo
+- Update `CHANGELOG.md` (Keep a Changelog format) — no changelog entry, no merge
 
 ## Verify
 

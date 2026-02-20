@@ -22,6 +22,7 @@ If FILES is not specified, use `git status`, file search, or code exploration to
 - Atomic commits, one logical change per commit
 - Stay in scope — do not refactor unrelated code
 - If task exceeds 30 min, STOP and propose sub-task decomposition
+- Update `CHANGELOG.md` (Keep a Changelog format) — no changelog entry, no merge
 
 ## Verify
 

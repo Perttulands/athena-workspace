@@ -21,6 +21,14 @@ Reusable prompt templates for coding agent dispatch via `dispatch.sh`.
 - `{{REPO_PATH}}` — Repository path
 - `{{FILES}}` — Files to read for context
 
+## Changelog Requirement
+
+Every template includes a mandatory changelog constraint:
+
+> Update `CHANGELOG.md` (Keep a Changelog format) — no changelog entry, no merge
+
+Agents must add an entry to the repo's `CHANGELOG.md` before committing. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
 ## Structure
 
 Every template follows: **Objective → Context → Constraints → Verify → Report**
