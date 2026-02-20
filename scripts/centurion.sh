@@ -131,7 +131,7 @@ cmd_merge() {
         exit 1
     fi
 
-    # Quality gate
+    # Mechanical quality gate
     if ! run_quality_gate "$repo_path" "$quality_level"; then
         write_result "$branch" "quality-failed" "$repo_path" "${TEST_GATE_LAST_OUTPUT:0:500}" "$quality_level"
         notify_wake_gateway "Centurion: quality gate failed for $branch (level=$quality_level)"
@@ -139,6 +139,39 @@ cmd_merge() {
         echo "Reverted: quality checks failed after merging $branch" >&2
         echo "  Quality output (last 200 chars): ${TEST_GATE_LAST_OUTPUT:0:200}" >&2
         exit 1
+    fi
+
+    # Deep mode semantic review
+    if [[ "$quality_level" == "deep" ]]; then
+        local semantic_rc=0 semantic_detail=""
+        if run_semantic_review "$repo_path" "$branch" "main"; then
+            semantic_rc=0
+        else
+            semantic_rc=$?
+        fi
+        semantic_detail="${SEMANTIC_REVIEW_LAST_JSON:-$SEMANTIC_REVIEW_LAST_SUMMARY}"
+
+        case "$semantic_rc" in
+            0)
+                echo "Semantic review passed"
+                ;;
+            1)
+                write_result "$branch" "semantic-failed" "$repo_path" "${semantic_detail:0:500}" "$quality_level"
+                notify_wake_gateway "Centurion: semantic review failed for $branch"
+                git -C "$repo_path" reset --hard HEAD~1 >/dev/null
+                echo "Reverted: semantic review failed after merging $branch" >&2
+                echo "  Semantic summary: ${SEMANTIC_REVIEW_LAST_SUMMARY:-failed}" >&2
+                exit 1
+                ;;
+            *)
+                write_result "$branch" "semantic-review-needed" "$repo_path" "${semantic_detail:0:500}" "$quality_level"
+                notify_wake_gateway "Centurion: semantic review needs manual decision for $branch"
+                git -C "$repo_path" reset --hard HEAD~1 >/dev/null
+                echo "Reverted: semantic review requested manual review for $branch" >&2
+                echo "  Semantic summary: ${SEMANTIC_REVIEW_LAST_SUMMARY:-review-needed}" >&2
+                exit 1
+                ;;
+        esac
     fi
 
     local commit_hash

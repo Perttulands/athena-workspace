@@ -200,6 +200,11 @@ run_truthsayer_gate() {
     TRUTHSAYER_GATE_LAST_OUTPUT=""
     timeout_seconds="$(_repo_timeout_seconds "$repo_path")"
 
+    if [[ "${CENTURION_SKIP_TRUTHSAYER:-false}" == "true" ]]; then
+        echo "Truthsayer gate skipped: CENTURION_SKIP_TRUTHSAYER=true"
+        return 0
+    fi
+
     if ! command -v truthsayer >/dev/null 2>&1 && [[ ! -x "$HOME/go/bin/truthsayer" ]]; then
         echo "Truthsayer gate skipped: binary not available"
         return 0
@@ -254,9 +259,9 @@ $TRUTHSAYER_GATE_LAST_OUTPUT"
             return 0
             ;;
         deep)
-            CENTURION_LAST_CHECKS="lint,tests,truthsayer"
+            CENTURION_LAST_CHECKS="lint,tests,truthsayer,semantic-review"
             run_quality_gate "$repo_path" "standard" || return 1
-            echo "Deep mode: semantic review not yet implemented"
+            echo "Deep mode: mechanical checks passed"
             return 0
             ;;
         *)
