@@ -36,6 +36,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ### Added
 - 2026-02-20: Senate case filing via Relay in `scripts/senate-deliberate.sh` with `--file-case` mode, quick-case support, and JSONL outbox fallback when Relay is unavailable.
+- 2026-02-20: Added semantic review scaffolding for Centurion via `scripts/lib/centurion-semantic.sh` and prompt contract at `skills/centurion-review.md`.
 - Problem accountability system: `scripts/problem-detected.sh` creates beads for problems, logs to `state/problems.jsonl`, wakes Athena
 - E2E test suite: `tests/e2e/` with 4 tests (beads lifecycle, wake gateway, truthsayer scan, dispatch lifecycle) and `run-e2e.sh` runner
 - Wake gateway script: `scripts/wake-gateway.sh` uses OpenClaw's `callGateway` from `dist/call-DLNOeLcz.js` for reliable wake signals

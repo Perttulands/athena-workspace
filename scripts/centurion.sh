@@ -15,6 +15,7 @@ CENTURION_RESULTS_DIR="${CENTURION_RESULTS_DIR:-$WORKSPACE_ROOT/state/results}"
 source "$SCRIPT_DIR/lib/common.sh"
 source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/centurion-test-gate.sh"
+source "$SCRIPT_DIR/lib/centurion-semantic.sh"
 source "$SCRIPT_DIR/lib/centurion-wake.sh"
 
 TEST_GATE_LAST_OUTPUT=""
