@@ -17,6 +17,7 @@ source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/centurion-test-gate.sh"
 source "$SCRIPT_DIR/lib/centurion-semantic.sh"
 source "$SCRIPT_DIR/lib/centurion-conflicts.sh"
+source "$SCRIPT_DIR/lib/centurion-senate.sh"
 source "$SCRIPT_DIR/lib/centurion-wake.sh"
 
 TEST_GATE_LAST_OUTPUT=""
@@ -134,8 +135,17 @@ cmd_merge() {
             echo "Auto-resolved trivial conflicts for $branch"
             notify_wake_gateway "Centurion: auto-resolved trivial conflict(s) for $branch"
         else
+            local senate_case_file=""
             merge_extra_json="$(jq -cn --argjson report "$conflict_report" --argjson auto "$AUTO_RESOLUTION_LAST_JSON" \
                 '{conflict_report:$report, auto_resolution:$auto}')"
+            if senate_case_file="$(escalate_to_senate "$repo_path" "$branch" "merge-conflict-unresolved" "$quality_level" "$conflict_report" "$AUTO_RESOLUTION_LAST_JSON")"; then
+                merge_extra_json="$(jq -cn \
+                    --argjson current "$merge_extra_json" \
+                    --arg case_id "$SENATE_ESCALATION_LAST_CASE_ID" \
+                    --arg case_file "$senate_case_file" \
+                    '$current + {senate_escalation:{case_id:$case_id, case_file:$case_file, status:"pending"}}')"
+                notify_wake_gateway "Centurion: escalated conflict for $branch to Senate ($SENATE_ESCALATION_LAST_CASE_ID)"
+            fi
             write_result "$branch" "conflict" "$repo_path" "$conflicts" "$quality_level" "$merge_extra_json"
             notify_wake_gateway "Centurion: merge conflict for $branch ($conflicts)"
             git -C "$repo_path" merge --abort 2>/dev/null || true
