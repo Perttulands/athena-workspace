@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# centurion.sh — Merge a branch to main with test gate
+# centurion.sh — Merge a branch to main with quality-gated checks
 #
 # Usage:
-#   centurion.sh merge <branch> <repo-path>    Merge branch into main (test-gated)
+#   centurion.sh merge [--level quick|standard|deep] <branch> <repo-path>
+#                                           Merge branch into main (quality-gated)
 #   centurion.sh status [repo-path]             Show branch/merge status
 set -euo pipefail
 
@@ -21,7 +22,7 @@ TEST_GATE_LAST_OUTPUT=""
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 write_result() {
-    local branch="$1" status="$2" repo_path="${3:-}" detail="${4:-}"
+    local branch="$1" status="$2" repo_path="${3:-}" detail="${4:-}" quality_level="${5:-standard}"
     mkdir -p "$CENTURION_RESULTS_DIR"
     local ts target tmp safe_branch
     ts="$(iso_now)"
@@ -29,15 +30,23 @@ write_result() {
     target="$CENTURION_RESULTS_DIR/${safe_branch}-centurion.json"
     tmp="$(mktemp "${target}.tmp.XXXXXX")"
     jq -cn --arg branch "$branch" --arg status "$status" --arg repo "$repo_path" \
-           --arg detail "$detail" --arg ts "$ts" \
-        '{branch:$branch, status:$status, repo:$repo, detail:$detail, timestamp:$ts}' > "$tmp"
+           --arg detail "$detail" --arg ts "$ts" --arg level "$quality_level" \
+        '{branch:$branch, status:$status, repo:$repo, detail:$detail, quality_level:$level, timestamp:$ts}' > "$tmp"
     mv "$tmp" "$target"
 }
 
 # ── Commands ─────────────────────────────────────────────────────────────────
 
 cmd_merge() {
-    local branch="$1" repo_path="$2"
+    local quality_level="$1" branch="$2" repo_path="$3"
+
+    case "$quality_level" in
+        quick|standard|deep) ;;
+        *)
+            echo "Error: invalid quality level '$quality_level' (expected quick|standard|deep)" >&2
+            exit 1
+            ;;
+    esac
 
     # Validate inputs
     git -C "$repo_path" rev-parse --git-dir &>/dev/null || {
@@ -66,7 +75,7 @@ cmd_merge() {
         echo "Error: working tree is dirty in $repo_path" >&2
         echo "  Commit or stash changes before merging" >&2
         git -C "$repo_path" status --short >&2
-        write_result "$branch" "dirty-worktree" "$repo_path" "uncommitted changes present"
+        write_result "$branch" "dirty-worktree" "$repo_path" "uncommitted changes present" "$quality_level"
         exit 1
     fi
 
@@ -102,7 +111,7 @@ cmd_merge() {
     # Check if branch is already fully merged into main
     if git -C "$repo_path" merge-base --is-ancestor "$branch" main 2>/dev/null; then
         echo "Branch $branch is already merged into main — nothing to do"
-        write_result "$branch" "already-merged" "$repo_path"
+        write_result "$branch" "already-merged" "$repo_path" "" "$quality_level"
         exit 0
     fi
 
@@ -113,7 +122,7 @@ cmd_merge() {
     if ! merge_output="$(git -C "$repo_path" merge --no-ff "$branch" -m "centurion: merge $branch to main" 2>&1)"; then
         local conflicts
         conflicts="$(git -C "$repo_path" diff --name-only --diff-filter=U 2>/dev/null || echo "unknown")"
-        write_result "$branch" "conflict" "$repo_path" "$conflicts"
+        write_result "$branch" "conflict" "$repo_path" "$conflicts" "$quality_level"
         notify_wake_gateway "Centurion: merge conflict for $branch ($conflicts)"
         git -C "$repo_path" merge --abort 2>/dev/null || true
         echo "Merge conflict: $branch → main" >&2
@@ -121,20 +130,20 @@ cmd_merge() {
         exit 1
     fi
 
-    # Test gate
-    if ! run_test_gate "$repo_path"; then
-        write_result "$branch" "test-failed" "$repo_path" "${TEST_GATE_LAST_OUTPUT:0:500}"
-        notify_wake_gateway "Centurion: test gate failed for $branch"
+    # Quality gate
+    if ! run_quality_gate "$repo_path" "$quality_level"; then
+        write_result "$branch" "quality-failed" "$repo_path" "${TEST_GATE_LAST_OUTPUT:0:500}" "$quality_level"
+        notify_wake_gateway "Centurion: quality gate failed for $branch (level=$quality_level)"
         git -C "$repo_path" reset --hard HEAD~1 >/dev/null
-        echo "Reverted: tests failed after merging $branch" >&2
-        echo "  Test output (last 200 chars): ${TEST_GATE_LAST_OUTPUT:0:200}" >&2
+        echo "Reverted: quality checks failed after merging $branch" >&2
+        echo "  Quality output (last 200 chars): ${TEST_GATE_LAST_OUTPUT:0:200}" >&2
         exit 1
     fi
 
     local commit_hash
     commit_hash="$(git -C "$repo_path" rev-parse --short HEAD)"
-    write_result "$branch" "merged" "$repo_path"
-    notify_wake_gateway "Centurion: merged $branch to main ($commit_hash)"
+    write_result "$branch" "merged" "$repo_path" "" "$quality_level"
+    notify_wake_gateway "Centurion: merged $branch to main ($commit_hash, level=$quality_level)"
     _prev_branch_for_cleanup="" # Don't switch back — we want to stay on main after success
     echo "Merged $branch to main at $commit_hash"
 }
@@ -178,7 +187,28 @@ cmd_status() {
 usage() { sed -n '2,/^set /{ /^#/s/^# \?//p }' "$0"; }
 
 case "${1:---help}" in
-    merge)  (( $# >= 3 )) || { echo "Error: merge requires <branch> <repo-path>" >&2; exit 1; }; cmd_merge "$2" "$3" ;;
+    merge)
+        shift
+        quality_level="standard"
+        while (( $# > 0 )); do
+            case "$1" in
+                --level)
+                    quality_level="${2:-}"
+                    [[ -n "$quality_level" ]] || { echo "Error: --level requires a value" >&2; exit 1; }
+                    shift 2
+                    ;;
+                --help|-h)
+                    usage
+                    exit 0
+                    ;;
+                *)
+                    break
+                    ;;
+            esac
+        done
+        (( $# >= 2 )) || { echo "Error: merge requires <branch> <repo-path>" >&2; exit 1; }
+        cmd_merge "$quality_level" "$1" "$2"
+        ;;
     status) cmd_status "${2:-}" ;;
     --help|-h|help) usage ;;
     *)      echo "Error: unknown command '$1'" >&2; usage; exit 1 ;;
