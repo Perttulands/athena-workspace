@@ -35,12 +35,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 ## [Unreleased]
 
 ### Added
+- 2026-02-20: Senate case filing via Relay in `scripts/senate-deliberate.sh` with `--file-case` mode, quick-case support, and JSONL outbox fallback when Relay is unavailable.
 - Problem accountability system: `scripts/problem-detected.sh` creates beads for problems, logs to `state/problems.jsonl`, wakes Athena
 - E2E test suite: `tests/e2e/` with 4 tests (beads lifecycle, wake gateway, truthsayer scan, dispatch lifecycle) and `run-e2e.sh` runner
 - Wake gateway script: `scripts/wake-gateway.sh` uses OpenClaw's `callGateway` from `dist/call-DLNOeLcz.js` for reliable wake signals
 - Truthsayer watch integration in `dispatch.sh` for live scanning during agent work
 
 ### Changed
+- 2026-02-20: `scripts/dispatch.sh` migrated to Relay-first dispatch/completion signaling with `--relay` / `--no-relay` controls, runner heartbeat/register/release hooks, and Relay message fallback to existing status-file/pane detection.
 - `dispatch.sh` uses `wake-gateway.sh` instead of broken `openclaw cron wake` CLI
 - `verify.sh` has timeouts (120s npm, 300s cargo/go) and prints test failures instead of silencing them
 - All scripts hardened with `set -euo pipefail` and reduced hardcoded paths
