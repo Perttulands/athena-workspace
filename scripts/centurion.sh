@@ -16,6 +16,7 @@ source "$SCRIPT_DIR/lib/common.sh"
 source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/centurion-test-gate.sh"
 source "$SCRIPT_DIR/lib/centurion-semantic.sh"
+source "$SCRIPT_DIR/lib/centurion-conflicts.sh"
 source "$SCRIPT_DIR/lib/centurion-wake.sh"
 
 TEST_GATE_LAST_OUTPUT=""
@@ -23,7 +24,8 @@ TEST_GATE_LAST_OUTPUT=""
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 write_result() {
-    local branch="$1" status="$2" repo_path="${3:-}" detail="${4:-}" quality_level="${5:-standard}"
+    local branch="$1" status="$2" repo_path="${3:-}" detail="${4:-}" quality_level="${5:-standard}" extra_json="${6:-}"
+    [[ -n "$extra_json" ]] || extra_json='{}'
     mkdir -p "$CENTURION_RESULTS_DIR"
     local ts target tmp safe_branch
     ts="$(iso_now)"
@@ -32,7 +34,8 @@ write_result() {
     tmp="$(mktemp "${target}.tmp.XXXXXX")"
     jq -cn --arg branch "$branch" --arg status "$status" --arg repo "$repo_path" \
            --arg detail "$detail" --arg ts "$ts" --arg level "$quality_level" \
-        '{branch:$branch, status:$status, repo:$repo, detail:$detail, quality_level:$level, timestamp:$ts}' > "$tmp"
+           --argjson extra "$extra_json" \
+        '{branch:$branch, status:$status, repo:$repo, detail:$detail, quality_level:$level, extra:$extra, timestamp:$ts}' > "$tmp"
     mv "$tmp" "$target"
 }
 
@@ -121,9 +124,10 @@ cmd_merge() {
     # Merge
     local merge_output
     if ! merge_output="$(git -C "$repo_path" merge --no-ff "$branch" -m "centurion: merge $branch to main" 2>&1)"; then
-        local conflicts
+        local conflicts conflict_report
         conflicts="$(git -C "$repo_path" diff --name-only --diff-filter=U 2>/dev/null || echo "unknown")"
-        write_result "$branch" "conflict" "$repo_path" "$conflicts" "$quality_level"
+        conflict_report="$(collect_conflict_report "$repo_path")"
+        write_result "$branch" "conflict" "$repo_path" "$conflicts" "$quality_level" "$conflict_report"
         notify_wake_gateway "Centurion: merge conflict for $branch ($conflicts)"
         git -C "$repo_path" merge --abort 2>/dev/null || true
         echo "Merge conflict: $branch → main" >&2
