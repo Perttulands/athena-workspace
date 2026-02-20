@@ -43,6 +43,7 @@ write_result() {
 
 cmd_merge() {
     local quality_level="$1" branch="$2" repo_path="$3"
+    local merge_extra_json='{}'
 
     case "$quality_level" in
         quick|standard|deep) ;;
@@ -127,17 +128,26 @@ cmd_merge() {
         local conflicts conflict_report
         conflicts="$(git -C "$repo_path" diff --name-only --diff-filter=U 2>/dev/null || echo "unknown")"
         conflict_report="$(collect_conflict_report "$repo_path")"
-        write_result "$branch" "conflict" "$repo_path" "$conflicts" "$quality_level" "$conflict_report"
-        notify_wake_gateway "Centurion: merge conflict for $branch ($conflicts)"
-        git -C "$repo_path" merge --abort 2>/dev/null || true
-        echo "Merge conflict: $branch → main" >&2
-        echo "  Conflicting files: $conflicts" >&2
-        exit 1
+        if auto_resolve_trivial_conflicts "$repo_path"; then
+            merge_extra_json="$(jq -cn --argjson report "$conflict_report" --argjson auto "$AUTO_RESOLUTION_LAST_JSON" \
+                '{conflict_report:$report, auto_resolution:$auto}')"
+            echo "Auto-resolved trivial conflicts for $branch"
+            notify_wake_gateway "Centurion: auto-resolved trivial conflict(s) for $branch"
+        else
+            merge_extra_json="$(jq -cn --argjson report "$conflict_report" --argjson auto "$AUTO_RESOLUTION_LAST_JSON" \
+                '{conflict_report:$report, auto_resolution:$auto}')"
+            write_result "$branch" "conflict" "$repo_path" "$conflicts" "$quality_level" "$merge_extra_json"
+            notify_wake_gateway "Centurion: merge conflict for $branch ($conflicts)"
+            git -C "$repo_path" merge --abort 2>/dev/null || true
+            echo "Merge conflict: $branch → main" >&2
+            echo "  Conflicting files: $conflicts" >&2
+            exit 1
+        fi
     fi
 
     # Mechanical quality gate
     if ! run_quality_gate "$repo_path" "$quality_level"; then
-        write_result "$branch" "quality-failed" "$repo_path" "${TEST_GATE_LAST_OUTPUT:0:500}" "$quality_level"
+        write_result "$branch" "quality-failed" "$repo_path" "${TEST_GATE_LAST_OUTPUT:0:500}" "$quality_level" "$merge_extra_json"
         notify_wake_gateway "Centurion: quality gate failed for $branch (level=$quality_level)"
         git -C "$repo_path" reset --hard HEAD~1 >/dev/null
         echo "Reverted: quality checks failed after merging $branch" >&2
@@ -160,7 +170,7 @@ cmd_merge() {
                 echo "Semantic review passed"
                 ;;
             1)
-                write_result "$branch" "semantic-failed" "$repo_path" "${semantic_detail:0:500}" "$quality_level"
+                write_result "$branch" "semantic-failed" "$repo_path" "${semantic_detail:0:500}" "$quality_level" "$merge_extra_json"
                 notify_wake_gateway "Centurion: semantic review failed for $branch"
                 git -C "$repo_path" reset --hard HEAD~1 >/dev/null
                 echo "Reverted: semantic review failed after merging $branch" >&2
@@ -168,7 +178,7 @@ cmd_merge() {
                 exit 1
                 ;;
             *)
-                write_result "$branch" "semantic-review-needed" "$repo_path" "${semantic_detail:0:500}" "$quality_level"
+                write_result "$branch" "semantic-review-needed" "$repo_path" "${semantic_detail:0:500}" "$quality_level" "$merge_extra_json"
                 notify_wake_gateway "Centurion: semantic review needs manual decision for $branch"
                 git -C "$repo_path" reset --hard HEAD~1 >/dev/null
                 echo "Reverted: semantic review requested manual review for $branch" >&2
@@ -180,7 +190,7 @@ cmd_merge() {
 
     local commit_hash
     commit_hash="$(git -C "$repo_path" rev-parse --short HEAD)"
-    write_result "$branch" "merged" "$repo_path" "" "$quality_level"
+    write_result "$branch" "merged" "$repo_path" "" "$quality_level" "$merge_extra_json"
     notify_wake_gateway "Centurion: merged $branch to main ($commit_hash, level=$quality_level)"
     _prev_branch_for_cleanup="" # Don't switch back — we want to stay on main after success
     echo "Merged $branch to main at $commit_hash"

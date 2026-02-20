@@ -49,6 +49,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 - 2026-02-20: Deep quality-level merges now run semantic review and rollback on `fail` or `review-needed`; added optional `CENTURION_SKIP_TRUTHSAYER=true` toggle for local/CI runs.
 - 2026-02-20: Semantic review now emits structured diff-analysis metadata (file/test counts and line deltas) and includes it in prompt context and review result JSON.
 - 2026-02-20: Merge conflicts now produce structured conflict reports (file list, marker line numbers, preview snippets) under `extra` in Centurion result JSON.
+- 2026-02-20: Added trivial conflict auto-resolution strategies (`ours`/`theirs` for simple stage patterns) with resolution metadata persisted in merge results.
 - `dispatch.sh` uses `wake-gateway.sh` instead of broken `openclaw cron wake` CLI
 - `verify.sh` has timeouts (120s npm, 300s cargo/go) and prints test failures instead of silencing them
 - All scripts hardened with `set -euo pipefail` and reduced hardcoded paths
