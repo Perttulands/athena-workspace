@@ -2,9 +2,9 @@
 # centurion.sh — Merge a branch to main with quality-gated checks
 #
 # Usage:
-#   centurion.sh merge [--level quick|standard|deep] <branch> <repo-path>
+#   centurion.sh merge [--level quick|standard|deep] [--verbose|--quiet] <branch> <repo-path>
 #                                           Merge branch into main (quality-gated)
-#   centurion.sh status [repo-path]             Show branch/merge status
+#   centurion.sh status [--verbose|--quiet] [repo-path]  Show branch/merge status
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -14,6 +14,7 @@ CENTURION_RESULTS_DIR="${CENTURION_RESULTS_DIR:-$WORKSPACE_ROOT/state/results}"
 
 source "$SCRIPT_DIR/lib/common.sh"
 source "$SCRIPT_DIR/lib/config.sh"
+source "$SCRIPT_DIR/lib/centurion-log.sh"
 source "$SCRIPT_DIR/lib/centurion-test-gate.sh"
 source "$SCRIPT_DIR/lib/centurion-semantic.sh"
 source "$SCRIPT_DIR/lib/centurion-conflicts.sh"
@@ -21,6 +22,8 @@ source "$SCRIPT_DIR/lib/centurion-senate.sh"
 source "$SCRIPT_DIR/lib/centurion-wake.sh"
 
 TEST_GATE_LAST_OUTPUT=""
+CENTURION_VERBOSE="${CENTURION_VERBOSE:-false}"
+CENTURION_QUIET="${CENTURION_QUIET:-false}"
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -45,6 +48,7 @@ write_result() {
 cmd_merge() {
     local quality_level="$1" branch="$2" repo_path="$3"
     local merge_extra_json='{}'
+    log_debug "Starting merge: branch=$branch repo=$repo_path level=$quality_level"
 
     case "$quality_level" in
         quick|standard|deep) ;;
@@ -96,7 +100,7 @@ cmd_merge() {
             exit 1
         fi
         # Stale lock — remove it
-        echo "Removing stale lock file (PID $lock_pid no longer running)"
+        log_info "Removing stale lock file (PID $lock_pid no longer running)"
         rm -f "$lock_file"
     fi
     echo "$$" > "$lock_file"
@@ -116,7 +120,7 @@ cmd_merge() {
 
     # Check if branch is already fully merged into main
     if git -C "$repo_path" merge-base --is-ancestor "$branch" main 2>/dev/null; then
-        echo "Branch $branch is already merged into main — nothing to do"
+        log_info "Branch $branch is already merged into main — nothing to do"
         write_result "$branch" "already-merged" "$repo_path" "" "$quality_level"
         exit 0
     fi
@@ -132,7 +136,7 @@ cmd_merge() {
         if auto_resolve_trivial_conflicts "$repo_path"; then
             merge_extra_json="$(jq -cn --argjson report "$conflict_report" --argjson auto "$AUTO_RESOLUTION_LAST_JSON" \
                 '{conflict_report:$report, auto_resolution:$auto}')"
-            echo "Auto-resolved trivial conflicts for $branch"
+            log_info "Auto-resolved trivial conflicts for $branch"
             notify_wake_gateway "Centurion: auto-resolved trivial conflict(s) for $branch"
         else
             local senate_case_file=""
@@ -155,7 +159,7 @@ cmd_merge() {
                         --argjson current "$merge_extra_json" \
                         --argjson resolution "$SENATE_RESOLUTION_LAST_JSON" \
                         '$current + {senate_resolution:$resolution}')"
-                    echo "Resolved conflict via Senate verdict for $branch"
+                    log_info "Resolved conflict via Senate verdict for $branch"
                     notify_wake_gateway "Centurion: applied Senate verdict for $branch ($senate_case_id)"
                 else
                     merge_extra_json="$(jq -cn \
@@ -169,8 +173,8 @@ cmd_merge() {
                 write_result "$branch" "conflict" "$repo_path" "$conflicts" "$quality_level" "$merge_extra_json"
                 notify_wake_gateway "Centurion: merge conflict for $branch ($conflicts)"
                 git -C "$repo_path" merge --abort 2>/dev/null || true
-                echo "Merge conflict: $branch → main" >&2
-                echo "  Conflicting files: $conflicts" >&2
+                log_error "Merge conflict: $branch -> main"
+                log_error "  Conflicting files: $conflicts"
                 exit 1
             fi
         fi
@@ -181,8 +185,8 @@ cmd_merge() {
         write_result "$branch" "quality-failed" "$repo_path" "${TEST_GATE_LAST_OUTPUT:0:500}" "$quality_level" "$merge_extra_json"
         notify_wake_gateway "Centurion: quality gate failed for $branch (level=$quality_level)"
         git -C "$repo_path" reset --hard HEAD~1 >/dev/null
-        echo "Reverted: quality checks failed after merging $branch" >&2
-        echo "  Quality output (last 200 chars): ${TEST_GATE_LAST_OUTPUT:0:200}" >&2
+        log_error "Reverted: quality checks failed after merging $branch"
+        log_error "  Quality output (last 200 chars): ${TEST_GATE_LAST_OUTPUT:0:200}"
         exit 1
     fi
 
@@ -198,22 +202,22 @@ cmd_merge() {
 
         case "$semantic_rc" in
             0)
-                echo "Semantic review passed"
+                log_info "Semantic review passed"
                 ;;
             1)
                 write_result "$branch" "semantic-failed" "$repo_path" "${semantic_detail:0:500}" "$quality_level" "$merge_extra_json"
                 notify_wake_gateway "Centurion: semantic review failed for $branch"
                 git -C "$repo_path" reset --hard HEAD~1 >/dev/null
-                echo "Reverted: semantic review failed after merging $branch" >&2
-                echo "  Semantic summary: ${SEMANTIC_REVIEW_LAST_SUMMARY:-failed}" >&2
+                log_error "Reverted: semantic review failed after merging $branch"
+                log_error "  Semantic summary: ${SEMANTIC_REVIEW_LAST_SUMMARY:-failed}"
                 exit 1
                 ;;
             *)
                 write_result "$branch" "semantic-review-needed" "$repo_path" "${semantic_detail:0:500}" "$quality_level" "$merge_extra_json"
                 notify_wake_gateway "Centurion: semantic review needs manual decision for $branch"
                 git -C "$repo_path" reset --hard HEAD~1 >/dev/null
-                echo "Reverted: semantic review requested manual review for $branch" >&2
-                echo "  Semantic summary: ${SEMANTIC_REVIEW_LAST_SUMMARY:-review-needed}" >&2
+                log_error "Reverted: semantic review requested manual review for $branch"
+                log_error "  Semantic summary: ${SEMANTIC_REVIEW_LAST_SUMMARY:-review-needed}"
                 exit 1
                 ;;
         esac
@@ -224,7 +228,11 @@ cmd_merge() {
     write_result "$branch" "merged" "$repo_path" "" "$quality_level" "$merge_extra_json"
     notify_wake_gateway "Centurion: merged $branch to main ($commit_hash, level=$quality_level)"
     _prev_branch_for_cleanup="" # Don't switch back — we want to stay on main after success
-    echo "Merged $branch to main at $commit_hash"
+    if [[ "$CENTURION_QUIET" == "true" ]]; then
+        echo "PASS: merged $branch to main at $commit_hash"
+    else
+        log_info "Merged $branch to main at $commit_hash"
+    fi
 }
 
 cmd_status() {
@@ -271,6 +279,14 @@ case "${1:---help}" in
         quality_level="standard"
         while (( $# > 0 )); do
             case "$1" in
+                --verbose)
+                    CENTURION_VERBOSE="true"
+                    shift
+                    ;;
+                --quiet)
+                    CENTURION_QUIET="true"
+                    shift
+                    ;;
                 --level)
                     quality_level="${2:-}"
                     [[ -n "$quality_level" ]] || { echo "Error: --level requires a value" >&2; exit 1; }
@@ -286,9 +302,29 @@ case "${1:---help}" in
             esac
         done
         (( $# >= 2 )) || { echo "Error: merge requires <branch> <repo-path>" >&2; exit 1; }
+        centurion_log_init "$CENTURION_VERBOSE" "$CENTURION_QUIET"
         cmd_merge "$quality_level" "$1" "$2"
         ;;
-    status) cmd_status "${2:-}" ;;
+    status)
+        shift
+        while (( $# > 0 )); do
+            case "$1" in
+                --verbose)
+                    CENTURION_VERBOSE="true"
+                    shift
+                    ;;
+                --quiet)
+                    CENTURION_QUIET="true"
+                    shift
+                    ;;
+                *)
+                    break
+                    ;;
+            esac
+        done
+        centurion_log_init "$CENTURION_VERBOSE" "$CENTURION_QUIET"
+        cmd_status "${1:-}"
+        ;;
     --help|-h|help) usage ;;
     *)      echo "Error: unknown command '$1'" >&2; usage; exit 1 ;;
 esac
