@@ -53,6 +53,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 - 2026-02-20: Added Senate escalation protocol for unresolved merge conflicts, writing structured case files to `state/senate-inbox/` and recording escalation metadata in Centurion results.
 - 2026-02-20: Added Senate-driven conflict resolution flow that can apply verdict files (`ours`/`theirs` strategies), complete the merge, and persist applied resolution metadata.
 - 2026-02-20: Added structured Centurion logging with `debug/info/warn/error` levels plus `--verbose` and `--quiet` merge/status controls.
+- 2026-02-20: Added Centurion metrics history logging (`state/centurion-history.jsonl`) and `centurion.sh history --limit N` for recent run inspection.
 - `dispatch.sh` uses `wake-gateway.sh` instead of broken `openclaw cron wake` CLI
 - `verify.sh` has timeouts (120s npm, 300s cargo/go) and prints test failures instead of silencing them
 - All scripts hardened with `set -euo pipefail` and reduced hardcoded paths

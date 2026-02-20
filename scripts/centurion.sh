@@ -5,12 +5,14 @@
 #   centurion.sh merge [--level quick|standard|deep] [--verbose|--quiet] <branch> <repo-path>
 #                                           Merge branch into main (quality-gated)
 #   centurion.sh status [--verbose|--quiet] [repo-path]  Show branch/merge status
+#   centurion.sh history [--limit N] [--verbose|--quiet] Show recent centurion run history
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 WAKE_GATEWAY_BIN="${CENTURION_WAKE_BIN:-$SCRIPT_DIR/wake-gateway.sh}"
 CENTURION_RESULTS_DIR="${CENTURION_RESULTS_DIR:-$WORKSPACE_ROOT/state/results}"
+CENTURION_HISTORY_FILE="${CENTURION_HISTORY_FILE:-$WORKSPACE_ROOT/state/centurion-history.jsonl}"
 
 source "$SCRIPT_DIR/lib/common.sh"
 source "$SCRIPT_DIR/lib/config.sh"
@@ -43,11 +45,30 @@ write_result() {
     mv "$tmp" "$target"
 }
 
+append_history() {
+    local branch="$1" repo_path="$2" quality_level="$3" status="$4" checks="$5" detail="${6:-}"
+    local duration_ms="$7"
+    mkdir -p "$(dirname "$CENTURION_HISTORY_FILE")"
+    jq -cn \
+        --arg ts "$(iso_now)" \
+        --arg branch "$branch" \
+        --arg repo "$repo_path" \
+        --arg level "$quality_level" \
+        --arg status "$status" \
+        --arg checks "$checks" \
+        --arg detail "$detail" \
+        --argjson duration_ms "${duration_ms:-0}" \
+        '{timestamp:$ts, branch:$branch, repo:$repo, quality_level:$level, status:$status, checks:$checks, detail:$detail, duration_ms:$duration_ms}' \
+        >> "$CENTURION_HISTORY_FILE"
+}
+
 # ── Commands ─────────────────────────────────────────────────────────────────
 
 cmd_merge() {
     local quality_level="$1" branch="$2" repo_path="$3"
     local merge_extra_json='{}'
+    local started_epoch duration_ms
+    started_epoch="$(epoch_now)"
     log_debug "Starting merge: branch=$branch repo=$repo_path level=$quality_level"
 
     case "$quality_level" in
@@ -86,6 +107,8 @@ cmd_merge() {
         echo "  Commit or stash changes before merging" >&2
         git -C "$repo_path" status --short >&2
         write_result "$branch" "dirty-worktree" "$repo_path" "uncommitted changes present" "$quality_level"
+        duration_ms="$(( ( $(epoch_now) - started_epoch ) * 1000 ))"
+        append_history "$branch" "$repo_path" "$quality_level" "dirty-worktree" "preflight" "uncommitted changes present" "$duration_ms"
         exit 1
     fi
 
@@ -122,6 +145,8 @@ cmd_merge() {
     if git -C "$repo_path" merge-base --is-ancestor "$branch" main 2>/dev/null; then
         log_info "Branch $branch is already merged into main — nothing to do"
         write_result "$branch" "already-merged" "$repo_path" "" "$quality_level"
+        duration_ms="$(( ( $(epoch_now) - started_epoch ) * 1000 ))"
+        append_history "$branch" "$repo_path" "$quality_level" "already-merged" "preflight" "" "$duration_ms"
         exit 0
     fi
 
@@ -175,6 +200,8 @@ cmd_merge() {
                 git -C "$repo_path" merge --abort 2>/dev/null || true
                 log_error "Merge conflict: $branch -> main"
                 log_error "  Conflicting files: $conflicts"
+                duration_ms="$(( ( $(epoch_now) - started_epoch ) * 1000 ))"
+                append_history "$branch" "$repo_path" "$quality_level" "conflict" "merge,conflict-analysis,senate" "$conflicts" "$duration_ms"
                 exit 1
             fi
         fi
@@ -187,6 +214,8 @@ cmd_merge() {
         git -C "$repo_path" reset --hard HEAD~1 >/dev/null
         log_error "Reverted: quality checks failed after merging $branch"
         log_error "  Quality output (last 200 chars): ${TEST_GATE_LAST_OUTPUT:0:200}"
+        duration_ms="$(( ( $(epoch_now) - started_epoch ) * 1000 ))"
+        append_history "$branch" "$repo_path" "$quality_level" "quality-failed" "${CENTURION_LAST_CHECKS:-quality}" "${TEST_GATE_LAST_OUTPUT:0:200}" "$duration_ms"
         exit 1
     fi
 
@@ -210,6 +239,8 @@ cmd_merge() {
                 git -C "$repo_path" reset --hard HEAD~1 >/dev/null
                 log_error "Reverted: semantic review failed after merging $branch"
                 log_error "  Semantic summary: ${SEMANTIC_REVIEW_LAST_SUMMARY:-failed}"
+                duration_ms="$(( ( $(epoch_now) - started_epoch ) * 1000 ))"
+                append_history "$branch" "$repo_path" "$quality_level" "semantic-failed" "${CENTURION_LAST_CHECKS:-quality}" "${SEMANTIC_REVIEW_LAST_SUMMARY:-failed}" "$duration_ms"
                 exit 1
                 ;;
             *)
@@ -218,6 +249,8 @@ cmd_merge() {
                 git -C "$repo_path" reset --hard HEAD~1 >/dev/null
                 log_error "Reverted: semantic review requested manual review for $branch"
                 log_error "  Semantic summary: ${SEMANTIC_REVIEW_LAST_SUMMARY:-review-needed}"
+                duration_ms="$(( ( $(epoch_now) - started_epoch ) * 1000 ))"
+                append_history "$branch" "$repo_path" "$quality_level" "semantic-review-needed" "${CENTURION_LAST_CHECKS:-quality}" "${SEMANTIC_REVIEW_LAST_SUMMARY:-review-needed}" "$duration_ms"
                 exit 1
                 ;;
         esac
@@ -228,6 +261,8 @@ cmd_merge() {
     write_result "$branch" "merged" "$repo_path" "" "$quality_level" "$merge_extra_json"
     notify_wake_gateway "Centurion: merged $branch to main ($commit_hash, level=$quality_level)"
     _prev_branch_for_cleanup="" # Don't switch back — we want to stay on main after success
+    duration_ms="$(( ( $(epoch_now) - started_epoch ) * 1000 ))"
+    append_history "$branch" "$repo_path" "$quality_level" "merged" "${CENTURION_LAST_CHECKS:-quality}" "$commit_hash" "$duration_ms"
     if [[ "$CENTURION_QUIET" == "true" ]]; then
         echo "PASS: merged $branch to main at $commit_hash"
     else
@@ -267,6 +302,20 @@ cmd_status() {
         echo "  Feature branches: $branches"
         echo
     done
+}
+
+cmd_history() {
+    local limit="${1:-20}"
+    [[ -n "$limit" ]] || limit=20
+    is_integer "$limit" || limit=20
+
+    if [[ ! -f "$CENTURION_HISTORY_FILE" ]]; then
+        echo "No centurion history at $CENTURION_HISTORY_FILE"
+        return 0
+    fi
+
+    tail -n "$limit" "$CENTURION_HISTORY_FILE" | jq -r \
+        '"[\(.timestamp)] status=\(.status) branch=\(.branch) level=\(.quality_level) checks=\(.checks) duration_ms=\(.duration_ms)"'
 }
 
 # ── Main ─────────────────────────────────────────────────────────────────────
@@ -324,6 +373,31 @@ case "${1:---help}" in
         done
         centurion_log_init "$CENTURION_VERBOSE" "$CENTURION_QUIET"
         cmd_status "${1:-}"
+        ;;
+    history)
+        shift
+        history_limit="20"
+        while (( $# > 0 )); do
+            case "$1" in
+                --limit)
+                    history_limit="${2:-20}"
+                    shift 2
+                    ;;
+                --verbose)
+                    CENTURION_VERBOSE="true"
+                    shift
+                    ;;
+                --quiet)
+                    CENTURION_QUIET="true"
+                    shift
+                    ;;
+                *)
+                    break
+                    ;;
+            esac
+        done
+        centurion_log_init "$CENTURION_VERBOSE" "$CENTURION_QUIET"
+        cmd_history "$history_limit"
         ;;
     --help|-h|help) usage ;;
     *)      echo "Error: unknown command '$1'" >&2; usage; exit 1 ;;
