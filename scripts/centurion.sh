@@ -136,22 +136,43 @@ cmd_merge() {
             notify_wake_gateway "Centurion: auto-resolved trivial conflict(s) for $branch"
         else
             local senate_case_file=""
+            local senate_case_id=""
+            local conflict_resolved_via_senate="false"
             merge_extra_json="$(jq -cn --argjson report "$conflict_report" --argjson auto "$AUTO_RESOLUTION_LAST_JSON" \
                 '{conflict_report:$report, auto_resolution:$auto}')"
             if senate_case_file="$(escalate_to_senate "$repo_path" "$branch" "merge-conflict-unresolved" "$quality_level" "$conflict_report" "$AUTO_RESOLUTION_LAST_JSON")"; then
+                senate_case_id="$(basename "$senate_case_file" .json)"
                 merge_extra_json="$(jq -cn \
                     --argjson current "$merge_extra_json" \
-                    --arg case_id "$SENATE_ESCALATION_LAST_CASE_ID" \
+                    --arg case_id "$senate_case_id" \
                     --arg case_file "$senate_case_file" \
                     '$current + {senate_escalation:{case_id:$case_id, case_file:$case_file, status:"pending"}}')"
-                notify_wake_gateway "Centurion: escalated conflict for $branch to Senate ($SENATE_ESCALATION_LAST_CASE_ID)"
+                notify_wake_gateway "Centurion: escalated conflict for $branch to Senate ($senate_case_id)"
+
+                if resolve_conflict_via_senate "$repo_path" "$senate_case_id"; then
+                    conflict_resolved_via_senate="true"
+                    merge_extra_json="$(jq -cn \
+                        --argjson current "$merge_extra_json" \
+                        --argjson resolution "$SENATE_RESOLUTION_LAST_JSON" \
+                        '$current + {senate_resolution:$resolution}')"
+                    echo "Resolved conflict via Senate verdict for $branch"
+                    notify_wake_gateway "Centurion: applied Senate verdict for $branch ($senate_case_id)"
+                else
+                    merge_extra_json="$(jq -cn \
+                        --argjson current "$merge_extra_json" \
+                        --argjson resolution "$SENATE_RESOLUTION_LAST_JSON" \
+                        '$current + {senate_resolution:$resolution}')"
+                fi
             fi
-            write_result "$branch" "conflict" "$repo_path" "$conflicts" "$quality_level" "$merge_extra_json"
-            notify_wake_gateway "Centurion: merge conflict for $branch ($conflicts)"
-            git -C "$repo_path" merge --abort 2>/dev/null || true
-            echo "Merge conflict: $branch → main" >&2
-            echo "  Conflicting files: $conflicts" >&2
-            exit 1
+
+            if [[ "$conflict_resolved_via_senate" != "true" ]]; then
+                write_result "$branch" "conflict" "$repo_path" "$conflicts" "$quality_level" "$merge_extra_json"
+                notify_wake_gateway "Centurion: merge conflict for $branch ($conflicts)"
+                git -C "$repo_path" merge --abort 2>/dev/null || true
+                echo "Merge conflict: $branch → main" >&2
+                echo "  Conflicting files: $conflicts" >&2
+                exit 1
+            fi
         fi
     fi
 
