@@ -6,6 +6,8 @@
 #                                           Merge branch into main (quality-gated)
 #   centurion.sh status [--verbose|--quiet] [repo-path]  Show branch/merge status
 #   centurion.sh history [--limit N] [--verbose|--quiet] Show recent centurion run history
+#   centurion.sh check [--level quick|standard|deep] [--verbose|--quiet] [repo-path]
+#                                           Run quality checks without merging (pre-commit friendly)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -330,6 +332,59 @@ cmd_history() {
         '"[\(.timestamp)] status=\(.status) branch=\(.branch) level=\(.quality_level) checks=\(.checks) duration_ms=\(.duration_ms)"'
 }
 
+cmd_check() {
+    local repo_path="$1"
+    local quality_level="${2:-quick}"
+    local started_epoch duration_ms
+    started_epoch="$(epoch_now)"
+
+    case "$quality_level" in
+        quick|standard|deep) ;;
+        *)
+            echo "Error: invalid quality level '$quality_level' (expected quick|standard|deep)" >&2
+            return 1
+            ;;
+    esac
+
+    if ! git -C "$repo_path" rev-parse --git-dir >/dev/null 2>&1; then
+        echo "Error: not a git repo: $repo_path" >&2
+        return 1
+    fi
+
+    if ! run_quality_gate "$repo_path" "$quality_level"; then
+        log_error "Quality check failed for $repo_path (level=$quality_level)"
+        log_error "  Output: ${TEST_GATE_LAST_OUTPUT:0:200}"
+        duration_ms="$(( ( $(epoch_now) - started_epoch ) * 1000 ))"
+        append_history "check" "$repo_path" "$quality_level" "check-failed" "${CENTURION_LAST_CHECKS:-quality}" "${TEST_GATE_LAST_OUTPUT:0:200}" "$duration_ms"
+        return 1
+    fi
+
+    if [[ "$quality_level" == "deep" ]]; then
+        local current_branch
+        current_branch="$(git -C "$repo_path" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")"
+        if [[ "$current_branch" != "main" ]] && git -C "$repo_path" show-ref --verify --quiet "refs/heads/main"; then
+            if run_semantic_review "$repo_path" "$current_branch" "main"; then
+                log_info "Semantic check passed for $current_branch"
+            else
+                log_error "Semantic check failed for $current_branch"
+                duration_ms="$(( ( $(epoch_now) - started_epoch ) * 1000 ))"
+                append_history "check" "$repo_path" "$quality_level" "check-failed" "${CENTURION_LAST_CHECKS:-quality}" "${SEMANTIC_REVIEW_LAST_SUMMARY:-semantic-failed}" "$duration_ms"
+                return 1
+            fi
+        else
+            log_info "Deep semantic check skipped (requires non-main branch and local main)"
+        fi
+    fi
+
+    duration_ms="$(( ( $(epoch_now) - started_epoch ) * 1000 ))"
+    append_history "check" "$repo_path" "$quality_level" "check-passed" "${CENTURION_LAST_CHECKS:-quality}" "" "$duration_ms"
+    if [[ "$CENTURION_QUIET" == "true" ]]; then
+        echo "PASS: check passed for $repo_path (level=$quality_level)"
+    else
+        log_info "Quality check passed for $repo_path (level=$quality_level)"
+    fi
+}
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 usage() { sed -n '2,/^set /{ /^#/s/^# \?//p }' "$0"; }
@@ -415,6 +470,32 @@ case "${1:---help}" in
         done
         centurion_log_init "$CENTURION_VERBOSE" "$CENTURION_QUIET"
         cmd_history "$history_limit"
+        ;;
+    check)
+        shift
+        check_level="quick"
+        while (( $# > 0 )); do
+            case "$1" in
+                --level)
+                    check_level="${2:-quick}"
+                    shift 2
+                    ;;
+                --verbose)
+                    CENTURION_VERBOSE="true"
+                    shift
+                    ;;
+                --quiet)
+                    CENTURION_QUIET="true"
+                    shift
+                    ;;
+                *)
+                    break
+                    ;;
+            esac
+        done
+        check_repo="${1:-.}"
+        centurion_log_init "$CENTURION_VERBOSE" "$CENTURION_QUIET"
+        cmd_check "$check_repo" "$check_level"
         ;;
     --help|-h|help) usage ;;
     *)      echo "Error: unknown command '$1'" >&2; usage; exit 1 ;;
