@@ -28,14 +28,66 @@ def _setup_repo(repo: Path) -> None:
     _must_git(repo, "config", "user.name", "Centurion Test")
     _must_git(repo, "config", "user.email", "centurion@example.com")
 
-    (repo / "app.txt").write_text("base\n", encoding="utf-8")
-    _must_git(repo, "add", "app.txt")
+    tests_dir = repo / "tests"
+    tests_dir.mkdir()
+
+    (repo / "app.py").write_text("def add(a, b):\n    return a + b\n", encoding="utf-8")
+    (tests_dir / "test_app.py").write_text(
+        "from app import add\n\n\ndef test_add():\n    assert add(1, 2) == 3\n",
+        encoding="utf-8",
+    )
+    _must_git(repo, "add", "app.py", "tests/test_app.py")
     _must_git(repo, "commit", "-m", "base")
 
     _must_git(repo, "checkout", "-b", "feature/semantic")
-    (repo / "app.txt").write_text("base\nfeature\n", encoding="utf-8")
-    _must_git(repo, "add", "app.txt")
+    (repo / "app.py").write_text("def add(a, b):\n    return a + b + 1\n", encoding="utf-8")
+    (tests_dir / "test_app.py").write_text(
+        "from app import add\n\n\ndef test_add():\n    assert add(1, 2) == 4\n",
+        encoding="utf-8",
+    )
+    _must_git(repo, "add", "app.py", "tests/test_app.py")
     _must_git(repo, "commit", "-m", "feature")
+    _must_git(repo, "checkout", "main")
+
+
+def _setup_repo_with_removed_assertion(repo: Path) -> None:
+    _must_git(repo, "init", "-b", "main")
+    _must_git(repo, "config", "user.name", "Centurion Test")
+    _must_git(repo, "config", "user.email", "centurion@example.com")
+
+    tests_dir = repo / "tests"
+    tests_dir.mkdir()
+    (repo / "app.py").write_text("def flag():\n    return True\n", encoding="utf-8")
+    (tests_dir / "test_flag.py").write_text(
+        "from app import flag\n\n\ndef test_flag():\n    assert flag() is True\n",
+        encoding="utf-8",
+    )
+    _must_git(repo, "add", "app.py", "tests/test_flag.py")
+    _must_git(repo, "commit", "-m", "base")
+
+    _must_git(repo, "checkout", "-b", "feature/semantic")
+    (tests_dir / "test_flag.py").write_text(
+        "from app import flag\n\n\ndef test_flag():\n    flag()\n",
+        encoding="utf-8",
+    )
+    _must_git(repo, "add", "tests/test_flag.py")
+    _must_git(repo, "commit", "-m", "remove assertion")
+    _must_git(repo, "checkout", "main")
+
+
+def _setup_repo_with_source_only_change(repo: Path) -> None:
+    _must_git(repo, "init", "-b", "main")
+    _must_git(repo, "config", "user.name", "Centurion Test")
+    _must_git(repo, "config", "user.email", "centurion@example.com")
+
+    (repo / "calc.py").write_text("def mul(a, b):\n    return a * b\n", encoding="utf-8")
+    _must_git(repo, "add", "calc.py")
+    _must_git(repo, "commit", "-m", "base")
+
+    _must_git(repo, "checkout", "-b", "feature/semantic")
+    (repo / "calc.py").write_text("def mul(a, b):\n    return (a * b) + 1\n", encoding="utf-8")
+    _must_git(repo, "add", "calc.py")
+    _must_git(repo, "commit", "-m", "source only change")
     _must_git(repo, "checkout", "main")
 
 
@@ -101,3 +153,31 @@ def test_semantic_review_marks_invalid_output_as_review_needed(tmp_path: Path) -
     assert "RC=2" in result.stdout
     assert "VERDICT=review-needed" in result.stdout
     assert "semantic review output was not valid JSON" in result.stdout
+
+
+def test_semantic_review_detects_removed_assertions_as_fail(tmp_path: Path) -> None:
+    repo = tmp_path / "repo-semantic-gaming-assertions"
+    repo.mkdir()
+    _setup_repo_with_removed_assertion(repo)
+
+    cmd = "printf '{\"verdict\":\"pass\",\"summary\":\"looks good\",\"flags\":[]}'"
+    result = _run_semantic(repo, cmd)
+
+    assert result.returncode == 0, result.stderr
+    assert "RC=1" in result.stdout
+    assert "VERDICT=fail" in result.stdout
+    assert "test.assertions_removed" in result.stdout
+
+
+def test_semantic_review_detects_source_only_change_as_review_needed(tmp_path: Path) -> None:
+    repo = tmp_path / "repo-semantic-gaming-coverage"
+    repo.mkdir()
+    _setup_repo_with_source_only_change(repo)
+
+    cmd = "printf '{\"verdict\":\"pass\",\"summary\":\"looks good\",\"flags\":[]}'"
+    result = _run_semantic(repo, cmd)
+
+    assert result.returncode == 0, result.stderr
+    assert "RC=2" in result.stdout
+    assert "VERDICT=review-needed" in result.stdout
+    assert "test.coverage_gap" in result.stdout

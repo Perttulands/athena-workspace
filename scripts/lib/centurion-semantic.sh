@@ -7,6 +7,9 @@ SEMANTIC_REVIEW_LAST_VERDICT="review-needed"
 SEMANTIC_REVIEW_LAST_SUMMARY="semantic review not run"
 SEMANTIC_REVIEW_LAST_OUTPUT=""
 SEMANTIC_REVIEW_LAST_FLAGS="[]"
+SEMANTIC_GAMING_FLAGS_JSON="[]"
+SEMANTIC_GAMING_SEVERITY="none"
+SEMANTIC_GAMING_SUMMARY=""
 
 semantic_review_prompt_file() {
     if [[ -n "${CENTURION_SEMANTIC_PROMPT_FILE:-}" ]]; then
@@ -40,6 +43,70 @@ semantic_extract_changed_files() {
     git -C "$repo_path" diff --name-only "${target_branch}...${source_branch}" 2>/dev/null || true
 }
 
+semantic_is_test_file() {
+    local file="$1"
+    [[ "$file" =~ (^|/)(test|tests)/ ]] || [[ "$file" =~ (_test\.[^/]+$|\.test\.[^/]+$|\.spec\.[^/]+$) ]]
+}
+
+semantic_detect_test_gaming() {
+    local repo_path="$1" target_branch="$2" source_branch="$3"
+    local has_source_changes=0 has_test_changes=0 removed_assertions=0 added_skip_markers=0
+    local severity="none"
+    local summary="no suspicious test-gaming patterns detected"
+    local -a changed_files=()
+    local -a flags=()
+
+    mapfile -t changed_files < <(semantic_extract_changed_files "$repo_path" "$target_branch" "$source_branch")
+    for file in "${changed_files[@]}"; do
+        [[ -n "$file" ]] || continue
+
+        if semantic_is_test_file "$file"; then
+            has_test_changes=1
+            local test_diff
+            test_diff="$(git -C "$repo_path" diff --no-color "${target_branch}...${source_branch}" -- "$file" 2>/dev/null || true)"
+            local removed_assertions_here=0
+            local added_assertions_here=0
+            if printf '%s\n' "$test_diff" | grep -E '^-.*(assert|expect\(|require\.|t\.(Fatal|Error|Fail(Now)?))' >/dev/null; then
+                removed_assertions_here=1
+            fi
+            if printf '%s\n' "$test_diff" | grep -E '^\+.*(assert|expect\(|require\.|t\.(Fatal|Error|Fail(Now)?))' >/dev/null; then
+                added_assertions_here=1
+            fi
+            if (( removed_assertions_here == 1 && added_assertions_here == 0 )); then
+                removed_assertions=1
+            fi
+            if printf '%s\n' "$test_diff" | grep -E '^\+.*(\.skip\(|t\.Skip\(|xit\(|xdescribe\(|@Disabled)' >/dev/null; then
+                added_skip_markers=1
+            fi
+        else
+            has_source_changes=1
+        fi
+    done
+
+    if (( removed_assertions == 1 )); then
+        flags+=("test.assertions_removed")
+        severity="high"
+    fi
+    if (( added_skip_markers == 1 )); then
+        flags+=("test.skip_added")
+        severity="high"
+    fi
+    if (( has_source_changes == 1 && has_test_changes == 0 )); then
+        flags+=("test.coverage_gap")
+        if [[ "$severity" != "high" ]]; then
+            severity="medium"
+        fi
+    fi
+
+    if [[ ${#flags[@]} -gt 0 ]]; then
+        summary="suspicious patterns: $(IFS=', '; echo "${flags[*]}")"
+    fi
+
+    SEMANTIC_GAMING_FLAGS_JSON="$(jq -cn '$ARGS.positional' --args "${flags[@]}")"
+    SEMANTIC_GAMING_SEVERITY="$severity"
+    SEMANTIC_GAMING_SUMMARY="$summary"
+}
+
 semantic_build_prompt() {
     local repo_path="$1" target_branch="$2" source_branch="$3"
     local prompt_file
@@ -63,6 +130,12 @@ semantic_build_prompt() {
                 printf '%s\n' "$changed_files" | sed 's/^/- /'
             else
                 echo "- (none)"
+            fi
+            echo "- Test-gaming pre-check severity: ${SEMANTIC_GAMING_SEVERITY:-none}"
+            echo "- Test-gaming pre-check summary: ${SEMANTIC_GAMING_SUMMARY:-n/a}"
+            if [[ "${SEMANTIC_GAMING_FLAGS_JSON:-[]}" != "[]" ]]; then
+                echo "- Test-gaming flags:"
+                jq -r '.[]' <<<"${SEMANTIC_GAMING_FLAGS_JSON:-[]}" | sed 's/^/  - /'
             fi
             echo
             echo "## Diff"
@@ -157,6 +230,14 @@ semantic_parse_review_json() {
 run_semantic_review() {
     local repo_path="$1" source_branch="$2" target_branch="${3:-main}"
     local prompt review_cmd model output
+    local parse_rc=0
+    local merged_flags="[]"
+
+    semantic_detect_test_gaming "$repo_path" "$target_branch" "$source_branch"
+    if [[ "$SEMANTIC_GAMING_SEVERITY" == "high" ]]; then
+        semantic_set_result "fail" "semantic review rejected potential test gaming: $SEMANTIC_GAMING_SUMMARY" "$SEMANTIC_GAMING_FLAGS_JSON" ""
+        return 1
+    fi
 
     prompt="$(semantic_build_prompt "$repo_path" "$target_branch" "$source_branch")"
 
@@ -176,5 +257,22 @@ run_semantic_review() {
         return 2
     fi
 
-    semantic_parse_review_json "$output"
+    if semantic_parse_review_json "$output"; then
+        parse_rc=0
+    else
+        parse_rc=$?
+    fi
+
+    if [[ "${SEMANTIC_GAMING_FLAGS_JSON:-[]}" != "[]" ]]; then
+        merged_flags="$(jq -cn --argjson review "${SEMANTIC_REVIEW_LAST_FLAGS:-[]}" --argjson gaming "${SEMANTIC_GAMING_FLAGS_JSON:-[]}" \
+            '$review + $gaming | unique')"
+        if [[ "$SEMANTIC_GAMING_SEVERITY" == "medium" && "$SEMANTIC_REVIEW_LAST_VERDICT" == "pass" ]]; then
+            semantic_set_result "review-needed" "semantic review flagged potential test gaming: $SEMANTIC_GAMING_SUMMARY" "$merged_flags" "$output"
+            return 2
+        fi
+        semantic_set_result "$SEMANTIC_REVIEW_LAST_VERDICT" "$SEMANTIC_REVIEW_LAST_SUMMARY" "$merged_flags" "$output"
+        return "$parse_rc"
+    fi
+
+    return "$parse_rc"
 }

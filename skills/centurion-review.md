@@ -11,6 +11,12 @@ Decide if a branch should merge based on semantic correctness, test adequacy, an
 3. Testing: Do tests validate behavior changes instead of masking failures?
 4. Clarity: Are names, structure, and comments clear enough for maintenance?
 
+## Test-Gaming Checks
+- Flag removed assertions in test files.
+- Flag newly introduced skip/disable patterns (`.skip`, `t.Skip`, `xit`, `xdescribe`).
+- Flag source-only changes with no meaningful test updates.
+- Use `review-needed` when intent is ambiguous; use `fail` when behavior is clearly gaming.
+
 ## Output Contract
 Return JSON only with this shape:
 

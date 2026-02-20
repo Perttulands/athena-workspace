@@ -45,6 +45,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 ### Changed
 - 2026-02-20: `scripts/dispatch.sh` migrated to Relay-first dispatch/completion signaling with `--relay` / `--no-relay` controls, runner heartbeat/register/release hooks, and Relay message fallback to existing status-file/pane detection.
 - 2026-02-20: Centurion `merge` now supports quality levels via `--level quick|standard|deep` (default `standard`), with level recorded in result JSON and level-aware gate execution.
+- 2026-02-20: Semantic review now performs test-gaming detection (assertion removals, skip markers, and source-only changes) and surfaces `fail`/`review-needed` verdicts with machine-readable flags.
 - `dispatch.sh` uses `wake-gateway.sh` instead of broken `openclaw cron wake` CLI
 - `verify.sh` has timeouts (120s npm, 300s cargo/go) and prints test failures instead of silencing them
 - All scripts hardened with `set -euo pipefail` and reduced hardcoded paths
