@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -123,6 +124,13 @@ def _run_semantic(repo: Path, review_cmd: str) -> subprocess.CompletedProcess[st
     )
 
 
+def _extract_result_json(output: str) -> dict:
+    marker = "JSON="
+    line = next((ln for ln in output.splitlines() if ln.startswith(marker)), "")
+    assert line, output
+    return json.loads(line[len(marker):])
+
+
 def test_semantic_prompt_file_exists() -> None:
     assert PROMPT.exists()
     assert "Output Contract" in PROMPT.read_text(encoding="utf-8")
@@ -139,7 +147,10 @@ def test_semantic_review_parses_pass_verdict(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     assert "RC=0" in result.stdout
     assert "VERDICT=pass" in result.stdout
-    assert '"verdict":"pass"' in result.stdout
+    payload = _extract_result_json(result.stdout)
+    assert payload["verdict"] == "pass"
+    assert payload["diff_analysis"]["files_total"] >= 1
+    assert payload["diff_analysis"]["tests_changed"] >= 1
 
 
 def test_semantic_review_marks_invalid_output_as_review_needed(tmp_path: Path) -> None:
@@ -152,7 +163,8 @@ def test_semantic_review_marks_invalid_output_as_review_needed(tmp_path: Path) -
     assert result.returncode == 0, result.stderr
     assert "RC=2" in result.stdout
     assert "VERDICT=review-needed" in result.stdout
-    assert "semantic review output was not valid JSON" in result.stdout
+    payload = _extract_result_json(result.stdout)
+    assert "semantic review output was not valid JSON" in payload["summary"]
 
 
 def test_semantic_review_detects_removed_assertions_as_fail(tmp_path: Path) -> None:

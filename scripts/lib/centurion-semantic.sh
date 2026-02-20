@@ -10,6 +10,7 @@ SEMANTIC_REVIEW_LAST_FLAGS="[]"
 SEMANTIC_GAMING_FLAGS_JSON="[]"
 SEMANTIC_GAMING_SEVERITY="none"
 SEMANTIC_GAMING_SUMMARY=""
+SEMANTIC_DIFF_ANALYSIS_JSON="{}"
 
 semantic_review_prompt_file() {
     if [[ -n "${CENTURION_SEMANTIC_PROMPT_FILE:-}" ]]; then
@@ -41,6 +42,47 @@ semantic_extract_diff() {
 semantic_extract_changed_files() {
     local repo_path="$1" target_branch="$2" source_branch="$3"
     git -C "$repo_path" diff --name-only "${target_branch}...${source_branch}" 2>/dev/null || true
+}
+
+semantic_build_diff_analysis() {
+    local repo_path="$1" target_branch="$2" source_branch="$3"
+    local files_total=0 tests_changed=0 source_changed=0 added_lines=0 removed_lines=0
+    local entries_json='[]'
+
+    while IFS=$'\t' read -r added removed file; do
+        [[ -n "${file:-}" ]] || continue
+        [[ "${added:-}" =~ ^[0-9]+$ ]] || added=0
+        [[ "${removed:-}" =~ ^[0-9]+$ ]] || removed=0
+
+        local is_test=false
+        if semantic_is_test_file "$file"; then
+            is_test=true
+            tests_changed=$((tests_changed + 1))
+        else
+            source_changed=$((source_changed + 1))
+        fi
+
+        files_total=$((files_total + 1))
+        added_lines=$((added_lines + added))
+        removed_lines=$((removed_lines + removed))
+
+        entries_json="$(jq -cn \
+            --argjson current "$entries_json" \
+            --arg file "$file" \
+            --argjson added "$added" \
+            --argjson removed "$removed" \
+            --argjson is_test "$is_test" \
+            '$current + [{file:$file, added:$added, removed:$removed, is_test:$is_test}]')"
+    done < <(git -C "$repo_path" diff --numstat "${target_branch}...${source_branch}" 2>/dev/null || true)
+
+    SEMANTIC_DIFF_ANALYSIS_JSON="$(jq -cn \
+        --argjson files_total "$files_total" \
+        --argjson tests_changed "$tests_changed" \
+        --argjson source_changed "$source_changed" \
+        --argjson added_lines "$added_lines" \
+        --argjson removed_lines "$removed_lines" \
+        --argjson files "$entries_json" \
+        '{files_total:$files_total, tests_changed:$tests_changed, source_changed:$source_changed, added_lines:$added_lines, removed_lines:$removed_lines, files:$files}')"
 }
 
 semantic_is_test_file() {
@@ -112,10 +154,13 @@ semantic_build_prompt() {
     local prompt_file
     local changed_files
     local diff_text
+    local diff_analysis_json=""
 
     prompt_file="$(semantic_review_prompt_file)"
     changed_files="$(semantic_extract_changed_files "$repo_path" "$target_branch" "$source_branch")"
     diff_text="$(semantic_extract_diff "$repo_path" "$target_branch" "$source_branch")"
+    diff_analysis_json="${SEMANTIC_DIFF_ANALYSIS_JSON:-}"
+    [[ -n "$diff_analysis_json" ]] || diff_analysis_json='{}'
 
     if [[ -f "$prompt_file" ]]; then
         {
@@ -137,6 +182,9 @@ semantic_build_prompt() {
                 echo "- Test-gaming flags:"
                 jq -r '.[]' <<<"${SEMANTIC_GAMING_FLAGS_JSON:-[]}" | sed 's/^/  - /'
             fi
+            echo
+            echo "## Diff Analysis"
+            jq . <<<"$diff_analysis_json"
             echo
             echo "## Diff"
             if [[ -n "$diff_text" ]]; then
@@ -172,7 +220,10 @@ PROMPT
 semantic_set_result() {
     local verdict="$1" summary="$2" flags_json="$3" raw_output="$4"
     local ts
+    local diff_analysis_json=""
     ts="$(iso_now)"
+    diff_analysis_json="${SEMANTIC_DIFF_ANALYSIS_JSON:-}"
+    [[ -n "$diff_analysis_json" ]] || diff_analysis_json='{}'
 
     SEMANTIC_REVIEW_LAST_VERDICT="$verdict"
     SEMANTIC_REVIEW_LAST_SUMMARY="$summary"
@@ -184,7 +235,8 @@ semantic_set_result() {
         --arg raw "$raw_output" \
         --arg ts "$ts" \
         --argjson flags "$flags_json" \
-        '{verdict:$verdict, summary:$summary, flags:$flags, raw_output:$raw, reviewed_at:$ts}')"
+        --argjson diff_analysis "$diff_analysis_json" \
+        '{verdict:$verdict, summary:$summary, flags:$flags, diff_analysis:$diff_analysis, raw_output:$raw, reviewed_at:$ts}')"
 }
 
 semantic_parse_review_json() {
@@ -233,6 +285,7 @@ run_semantic_review() {
     local parse_rc=0
     local merged_flags="[]"
 
+    semantic_build_diff_analysis "$repo_path" "$target_branch" "$source_branch"
     semantic_detect_test_gaming "$repo_path" "$target_branch" "$source_branch"
     if [[ "$SEMANTIC_GAMING_SEVERITY" == "high" ]]; then
         semantic_set_result "fail" "semantic review rejected potential test gaming: $SEMANTIC_GAMING_SUMMARY" "$SEMANTIC_GAMING_FLAGS_JSON" ""
