@@ -2,7 +2,7 @@
 # centurion.sh — Merge a branch to main with quality-gated checks
 #
 # Usage:
-#   centurion.sh merge [--level quick|standard|deep] [--verbose|--quiet] <branch> <repo-path>
+#   centurion.sh merge [--level quick|standard|deep] [--dry-run] [--verbose|--quiet] <branch> <repo-path>
 #                                           Merge branch into main (quality-gated)
 #   centurion.sh status [--verbose|--quiet] [repo-path]  Show branch/merge status
 #   centurion.sh history [--limit N] [--verbose|--quiet] Show recent centurion run history
@@ -65,11 +65,11 @@ append_history() {
 # ── Commands ─────────────────────────────────────────────────────────────────
 
 cmd_merge() {
-    local quality_level="$1" branch="$2" repo_path="$3"
+    local quality_level="$1" dry_run="$2" branch="$3" repo_path="$4"
     local merge_extra_json='{}'
     local started_epoch duration_ms
     started_epoch="$(epoch_now)"
-    log_debug "Starting merge: branch=$branch repo=$repo_path level=$quality_level"
+    log_debug "Starting merge: branch=$branch repo=$repo_path level=$quality_level dry_run=$dry_run"
 
     case "$quality_level" in
         quick|standard|deep) ;;
@@ -258,15 +258,27 @@ cmd_merge() {
 
     local commit_hash
     commit_hash="$(git -C "$repo_path" rev-parse --short HEAD)"
-    write_result "$branch" "merged" "$repo_path" "" "$quality_level" "$merge_extra_json"
-    notify_wake_gateway "Centurion: merged $branch to main ($commit_hash, level=$quality_level)"
-    _prev_branch_for_cleanup="" # Don't switch back — we want to stay on main after success
-    duration_ms="$(( ( $(epoch_now) - started_epoch ) * 1000 ))"
-    append_history "$branch" "$repo_path" "$quality_level" "merged" "${CENTURION_LAST_CHECKS:-quality}" "$commit_hash" "$duration_ms"
-    if [[ "$CENTURION_QUIET" == "true" ]]; then
-        echo "PASS: merged $branch to main at $commit_hash"
+    if [[ "$dry_run" == "true" ]]; then
+        git -C "$repo_path" reset --hard HEAD~1 >/dev/null
+        write_result "$branch" "dry-run-pass" "$repo_path" "would-merge:$commit_hash" "$quality_level" "$merge_extra_json"
+        duration_ms="$(( ( $(epoch_now) - started_epoch ) * 1000 ))"
+        append_history "$branch" "$repo_path" "$quality_level" "dry-run-pass" "${CENTURION_LAST_CHECKS:-quality}" "$commit_hash" "$duration_ms"
+        if [[ "$CENTURION_QUIET" == "true" ]]; then
+            echo "PASS: dry-run would merge $branch to main at $commit_hash"
+        else
+            log_info "DRY RUN: would merge $branch to main at $commit_hash"
+        fi
     else
-        log_info "Merged $branch to main at $commit_hash"
+        write_result "$branch" "merged" "$repo_path" "" "$quality_level" "$merge_extra_json"
+        notify_wake_gateway "Centurion: merged $branch to main ($commit_hash, level=$quality_level)"
+        _prev_branch_for_cleanup="" # Don't switch back — we want to stay on main after success
+        duration_ms="$(( ( $(epoch_now) - started_epoch ) * 1000 ))"
+        append_history "$branch" "$repo_path" "$quality_level" "merged" "${CENTURION_LAST_CHECKS:-quality}" "$commit_hash" "$duration_ms"
+        if [[ "$CENTURION_QUIET" == "true" ]]; then
+            echo "PASS: merged $branch to main at $commit_hash"
+        else
+            log_info "Merged $branch to main at $commit_hash"
+        fi
     fi
 }
 
@@ -326,6 +338,7 @@ case "${1:---help}" in
     merge)
         shift
         quality_level="standard"
+        dry_run="false"
         while (( $# > 0 )); do
             case "$1" in
                 --verbose)
@@ -334,6 +347,10 @@ case "${1:---help}" in
                     ;;
                 --quiet)
                     CENTURION_QUIET="true"
+                    shift
+                    ;;
+                --dry-run)
+                    dry_run="true"
                     shift
                     ;;
                 --level)
@@ -352,7 +369,7 @@ case "${1:---help}" in
         done
         (( $# >= 2 )) || { echo "Error: merge requires <branch> <repo-path>" >&2; exit 1; }
         centurion_log_init "$CENTURION_VERBOSE" "$CENTURION_QUIET"
-        cmd_merge "$quality_level" "$1" "$2"
+        cmd_merge "$quality_level" "$dry_run" "$1" "$2"
         ;;
     status)
         shift
