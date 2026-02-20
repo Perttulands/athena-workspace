@@ -19,7 +19,7 @@ source "$SCRIPT_DIR/lib/record.sh"
 # ── Arguments ────────────────────────────────────────────────────────────────
 
 usage() {
-    echo "Usage: $0 <bead-id> <repo-path> <agent-type> <prompt> [--branch <name>] [--force]" >&2
+    echo "Usage: $0 <bead-id> <repo-path> <agent-type> <prompt> [--branch <name>] [--force] [--relay|--no-relay]" >&2
 }
 
 (( $# >= 4 )) || { usage; exit 1; }
@@ -33,11 +33,14 @@ shift 4
 BRANCH=""
 FORCE_DISPATCH="${DISPATCH_FORCE:-false}"
 TEMPLATE_NAME="custom"
+USE_RELAY="${DISPATCH_USE_RELAY:-true}"
 
 while (( $# > 0 )); do
     case "$1" in
         --branch) BRANCH="$2"; shift 2 ;;
         --force)  FORCE_DISPATCH="true"; shift ;;
+        --relay)  USE_RELAY="true"; shift ;;
+        --no-relay) USE_RELAY="false"; shift ;;
         *)        TEMPLATE_NAME="$1"; shift ;;
     esac
 done
@@ -55,6 +58,8 @@ TMUX_SOCKET="${DISPATCH_TMUX_SOCKET:-/tmp/openclaw-coding-agents.sock}"
 MAX_RETRIES="${DISPATCH_MAX_RETRIES:-2}"
 WATCH_INTERVAL_SECONDS="${DISPATCH_WATCH_INTERVAL:-20}"
 WATCH_TIMEOUT_SECONDS="${DISPATCH_WATCH_TIMEOUT:-3600}"
+RELAY_BIN="${DISPATCH_RELAY_BIN:-$HOME/go/bin/relay}"
+RELAY_ORCHESTRATOR_AGENT="${DISPATCH_RELAY_ORCHESTRATOR_AGENT:-athena}"
 
 for var in MAX_RETRIES WATCH_INTERVAL_SECONDS WATCH_TIMEOUT_SECONDS; do
     val="${!var}"
@@ -63,6 +68,14 @@ for var in MAX_RETRIES WATCH_INTERVAL_SECONDS WATCH_TIMEOUT_SECONDS; do
         exit 1
     fi
 done
+
+case "$USE_RELAY" in
+    true|false) ;;
+    *)
+        echo "Error: DISPATCH_USE_RELAY must be true or false (got '$USE_RELAY')" >&2
+        exit 1
+        ;;
+esac
 
 STATE_DIR="$WORKSPACE_ROOT/state"
 RUNS_DIR="$STATE_DIR/runs"
@@ -142,6 +155,65 @@ cleanup_runtime() {
     stop_truthsayer
 }
 
+relay_enabled() {
+    [[ "$USE_RELAY" == "true" && -x "$RELAY_BIN" ]]
+}
+
+relay_send_message() {
+    local to="$1" body="$2" agent="$3" thread="${4:-}" priority="${5:-normal}" tags="${6:-}"
+    relay_enabled || return 1
+
+    local cmd=("$RELAY_BIN" send "$to" "$body" --agent "$agent" --priority "$priority")
+    [[ -n "$thread" ]] && cmd+=(--thread "$thread")
+    [[ -n "$tags" ]] && cmd+=(--tag "$tags")
+    "${cmd[@]}" >/dev/null 2>&1
+}
+
+send_dispatch_event() {
+    relay_enabled || return 0
+
+    local payload=""
+    payload="$(jq -cn \
+        --arg type "dispatch" \
+        --arg bead "$BEAD_ID" \
+        --arg session "$SESSION_NAME" \
+        --arg repo "$REPO_PATH" \
+        --arg agent "$AGENT_TYPE" \
+        --arg model "$MODEL" \
+        --arg prompt "$PROMPT_TRUNCATED" \
+        --arg attempt "$ATTEMPT/$MAX_RETRIES" \
+        --arg ts "$(iso_now)" \
+        '{type:$type, bead:$bead, session:$session, repo:$repo, agent:$agent, model:$model, prompt:$prompt, attempt:$attempt, timestamp:$ts}')" || payload=""
+    [[ -n "$payload" ]] || return 0
+
+    relay_send_message "$SESSION_NAME" "$payload" "$RELAY_ORCHESTRATOR_AGENT" "$BEAD_ID" "high" "dispatch,relay" || true
+    if [[ "$RELAY_ORCHESTRATOR_AGENT" != "$SESSION_NAME" ]]; then
+        relay_send_message "$RELAY_ORCHESTRATOR_AGENT" "$payload" "$RELAY_ORCHESTRATOR_AGENT" "$BEAD_ID" "high" "dispatch,relay" || true
+    fi
+}
+
+detect_relay_completion() {
+    relay_enabled || return 1
+
+    local messages payload status exit_code finished_at
+    messages="$("$RELAY_BIN" read --agent "$RELAY_ORCHESTRATOR_AGENT" --from "$SESSION_NAME" --thread "$BEAD_ID" --last 20 --mark-read --json 2>/dev/null)" || return 1
+    payload="$(printf '%s' "$messages" | jq -c --arg bead "$BEAD_ID" \
+        '[.[] | .body | fromjson? | select(.type == "completion" and .bead == $bead)] | last // empty' 2>/dev/null)" || return 1
+    [[ -n "$payload" && "$payload" != "null" ]] || return 1
+
+    status="$(printf '%s' "$payload" | jq -r '.status // "failed"' 2>/dev/null)"
+    exit_code="$(printf '%s' "$payload" | jq -r '.exit_code // 1' 2>/dev/null)"
+    finished_at="$(printf '%s' "$payload" | jq -r '.finished_at // empty' 2>/dev/null)"
+    [[ -n "$finished_at" && "$finished_at" != "null" ]] || finished_at="$(iso_now)"
+
+    if [[ "$status" == "done" || "$status" == "success" ]]; then
+        set_detection "done" "$exit_code" "relay-message" "$finished_at"
+    else
+        set_detection "failed" "$exit_code" "relay-message" "$finished_at"
+    fi
+    return 0
+}
+
 # Build coordination context: other active agents on this repo
 build_coordination_context() {
     local active_beads=""
@@ -181,13 +253,10 @@ wake_athena() {
         (( n > 0 )) && ts_msg=", truthsayer: ${n} issues"
     fi
     local msg="Agent $BEAD_ID $status (${duration}s, $AGENT_TYPE/$MODEL, attempt $ATTEMPT/$MAX_RETRIES, reason: $reason${ts_msg}). Check state/results/$BEAD_ID.json and message Perttu with the result summary."
-    
+
     # Send via Relay if available
-    local relay_bin="$HOME/go/bin/relay"
-    if [[ -x "$relay_bin" ]]; then
-        "$relay_bin" send -url http://localhost:9292 athena "$msg" 2>/dev/null || true
-    fi
-    
+    relay_send_message "$RELAY_ORCHESTRATOR_AGENT" "$msg" "$RELAY_ORCHESTRATOR_AGENT" "$BEAD_ID" "high" "wake,dispatch" || true
+
     # Wake gateway
     local script="$SCRIPT_DIR/wake-gateway.sh"
     if [[ -x "$script" ]]; then
@@ -202,7 +271,12 @@ DETECTED_STATUS="" DETECTED_EXIT_CODE="" DETECTED_REASON="" DETECTED_FINISHED_AT
 set_detection() { DETECTED_STATUS="$1"; DETECTED_EXIT_CODE="$2"; DETECTED_REASON="$3"; DETECTED_FINISHED_AT="$4"; }
 
 detect_completion() {
-    # 1. Status file
+    # 1. Relay completion event
+    if detect_relay_completion; then
+        return 0
+    fi
+
+    # 2. Status file
     if [[ -f "$STATUS_FILE" ]] && jq -e '.exit_code and .finished_at' "$STATUS_FILE" &>/dev/null; then
         local ec fa
         ec="$(jq -r '.exit_code' "$STATUS_FILE")"
@@ -220,7 +294,7 @@ detect_completion() {
         return 0
     fi
 
-    # 2. Pane inspection
+    # 3. Pane inspection
     if session_exists; then
         local pane
         pane="$(tmux -S "$TMUX_SOCKET" capture-pane -t "$SESSION_NAME" -p -S -300 2>/dev/null)" || pane=""
@@ -247,7 +321,7 @@ detect_completion() {
         return 1
     fi
 
-    # 3. Session gone
+    # 4. Session gone
     if [[ -f "$STATUS_FILE" ]] && jq -e '.exit_code and .finished_at' "$STATUS_FILE" &>/dev/null; then
         local ec fa
         ec="$(jq -r '.exit_code' "$STATUS_FILE")"
@@ -371,9 +445,48 @@ set -euo pipefail
 STATUS_FILE=$(printf '%q' "$STATUS_FILE")
 PROMPT_FILE=$(printf '%q' "$PROMPT_FILE")
 BEAD_ID=$(printf '%q' "$BEAD_ID")
+SESSION_NAME=$(printf '%q' "$SESSION_NAME")
+AGENT_TYPE=$(printf '%q' "$AGENT_TYPE")
+MODEL=$(printf '%q' "$MODEL")
+REPO_PATH=$(printf '%q' "$REPO_PATH")
+USE_RELAY=$(printf '%q' "$USE_RELAY")
+RELAY_BIN=$(printf '%q' "$RELAY_BIN")
+RELAY_ORCHESTRATOR_AGENT=$(printf '%q' "$RELAY_ORCHESTRATOR_AGENT")
 AGENT_CMD=($cmd_literal)
 
 _emit_done=false
+RELAY_HEARTBEAT_PID=""
+
+relay_runner_enabled() {
+    [[ "\$USE_RELAY" == "true" && -x "\$RELAY_BIN" ]]
+}
+
+start_relay_heartbeat() {
+    relay_runner_enabled || return 0
+
+    "\$RELAY_BIN" register "\$SESSION_NAME" \
+        --program "\$AGENT_TYPE" \
+        --model "\$MODEL" \
+        --task "bead \$BEAD_ID running" \
+        --bead "\$BEAD_ID" >/dev/null 2>&1 || true
+    "\$RELAY_BIN" heartbeat --agent "\$SESSION_NAME" --task "bead \$BEAD_ID running" >/dev/null 2>&1 || true
+
+    (
+        while true; do
+            "\$RELAY_BIN" heartbeat --agent "\$SESSION_NAME" --task "bead \$BEAD_ID running" >/dev/null 2>&1 || true
+            sleep 60
+        done
+    ) &
+    RELAY_HEARTBEAT_PID=\$!
+}
+
+stop_relay_heartbeat() {
+    [[ -n "\$RELAY_HEARTBEAT_PID" ]] || return 0
+    kill "\$RELAY_HEARTBEAT_PID" 2>/dev/null || true
+    wait "\$RELAY_HEARTBEAT_PID" 2>/dev/null || true
+    RELAY_HEARTBEAT_PID=""
+}
+
 emit_status() {
     # Guard against double-emit (signal + EXIT trap)
     [[ "\$_emit_done" == "true" ]] && return 0
@@ -395,11 +508,37 @@ emit_status() {
         printf '{"bead":"%s","finished_at":"%s","exit_code":%s}\n' "\$BEAD_ID" "\$ts" "\$ec" > "\$STATUS_FILE"
         rm -f "\$tmp" 2>/dev/null || true
     fi
+
+    stop_relay_heartbeat
+    if relay_runner_enabled; then
+        "\$RELAY_BIN" release --all --agent "\$SESSION_NAME" >/dev/null 2>&1 || true
+        local status payload
+        status="failed"
+        [[ "\$ec" == "0" ]] && status="done"
+        payload=\$(jq -cn \
+            --arg type "completion" \
+            --arg bead "\$BEAD_ID" \
+            --arg session "\$SESSION_NAME" \
+            --arg agent "\$AGENT_TYPE" \
+            --arg model "\$MODEL" \
+            --arg repo "\$REPO_PATH" \
+            --arg status "\$status" \
+            --arg finished_at "\$ts" \
+            --argjson exit_code "\$ec" \
+            '{type:$type, bead:$bead, session:$session, agent:$agent, model:$model, repo:$repo, status:$status, exit_code:$exit_code, finished_at:$finished_at}')
+        "\$RELAY_BIN" send "\$RELAY_ORCHESTRATOR_AGENT" "\$payload" \
+            --agent "\$SESSION_NAME" \
+            --thread "\$BEAD_ID" \
+            --priority high \
+            --tag "completion,dispatch" >/dev/null 2>&1 || true
+    fi
+
     echo "OPENCLAW_EXIT_CODE:\$ec"
     echo "OPENCLAW_FINISHED_AT:\$ts"
 }
 trap 'emit_status "\$?"' EXIT
 trap 'emit_status "130"' SIGTERM SIGINT SIGHUP
+start_relay_heartbeat
 "\${AGENT_CMD[@]}" < "\$PROMPT_FILE"
 RUNNER
     chmod +x "$RUNNER_SCRIPT"
@@ -520,6 +659,13 @@ echo "Agent: $AGENT_TYPE | Model: $MODEL"
 echo "Repo: $REPO_PATH"
 echo "Branch: $(git -C "$REPO_PATH" rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'N/A')"
 echo "Attempt: $ATTEMPT/$MAX_RETRIES"
+if relay_enabled; then
+    echo "Relay: enabled ($RELAY_BIN)"
+elif [[ "$USE_RELAY" == "true" ]]; then
+    echo "Relay: requested but unavailable ($RELAY_BIN)"
+else
+    echo "Relay: disabled (--no-relay)"
+fi
 
 # Truthsayer
 if [[ -x "$TRUTHSAYER_BIN" ]]; then
@@ -537,6 +683,8 @@ if ! tmux -S "$TMUX_SOCKET" new-session -d -s "$SESSION_NAME" -c "$REPO_PATH" "b
     echo "  Check: tmux -S $TMUX_SOCKET list-sessions" >&2
     exit 1
 fi
+
+send_dispatch_event
 
 launch_watcher
 echo "Agent dispatched. Background watcher PID: $!"
